@@ -1,0 +1,461 @@
+/* ============================================================
+   설정값 — 아래 세 가지를 본인 값으로 바꿔주세요.
+   1) index.html 안의 카카오맵 SDK 스크립트 태그에서 YOUR_KAKAO_JS_KEY 교체
+   2) 아래 TIDE_API_KEY: 공공데이터포털에서 받은 인증키(Decoding)
+   3) 아래 TIDE_API_ENDPOINT, OBS_CODES: 데이터포털 승인 화면의
+      Swagger/참고문서에 나온 정확한 요청 URL과 관측소 코드로 교체
+      (이 두 값은 제가 100% 확신할 수 없어 자리표시자로 남겨뒀습니다.
+       확정 전까지는 달력의 물때가 아래 tideInfo()의 추정값으로 표시됩니다.)
+============================================================ */
+var TIDE_API_KEY = 'IRsSSSvAIRJ8yzg/0FRHuB046Llj2SkN/PJxXUE4QFIuZgMJA8f30kbyruOLZVBJwxRIlejEIDht2efEcwCQzA==';
+var TIDE_API_ENDPOINT = 'YOUR_TIDE_API_ENDPOINT';
+var OBS_CODES = {
+  wangsan: 'YOUR_OBS_CODE_YEONGJONGDO',
+  yeongheung: 'YOUR_OBS_CODE_YEONGHEUNGDO',
+  taean: 'YOUR_OBS_CODE_ANHEUNG'
+};
+
+/* ============================================================
+   데이터 — 좌표는 제가 대략적으로 넣은 값이라 실제로 켜보시고
+   핀 위치가 어긋나면 아래 lat/lng 값을 조정해주세요.
+============================================================ */
+var regions = {
+  wangsan: {
+    label: '왕산(영종도)', center: { lat: 37.4470, lng: 126.3700 }, level: 6,
+    points: [
+      { name: '왕산해수욕장', lat: 37.4478, lng: 126.3762, species: ['바지락', '동죽', '낙지'] },
+      { name: '선녀바위', lat: 37.4448, lng: 126.3695, species: ['백합', '주꾸미', '소라'] },
+      { name: '을왕리', lat: 37.4438, lng: 126.3701, species: ['소라', '박하지'] },
+      { name: '마시안', lat: 37.4529, lng: 126.3639, species: ['바지락', '동죽'] }
+    ],
+    campsFormal: [
+      { name: '왕산가족오토캠핑장', note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
+      { name: '을왕리 솔트캠핑장', note: '차박 전용 구역·카라반 구역 분리, 주차 넉넉' }
+    ],
+    campsInformal: [
+      { name: '을왕리 해변 노지 주차', note: '무료지만 만조 시 주차구역 침수 위험 — 물때 확인 후 높은 곳에 주차', caution: true }
+    ]
+  },
+  yeongheung: {
+    label: '영흥도', center: { lat: 37.2350, lng: 126.4350 }, level: 7,
+    points: [
+      { name: '십리포해수욕장', lat: 37.2426, lng: 126.4278, species: ['낙지', '소라', '박하지', '갯가재'] },
+      { name: '장경리해수욕장', lat: 37.2334, lng: 126.4308, species: ['바지락', '굴'] },
+      { name: '노가리해변', lat: 37.2278, lng: 126.4457, species: ['키조개', '소라', '골뱅이', '꽃게'] }
+    ],
+    campsFormal: [
+      { name: '십리포해수욕장 캠핑장', note: '정식 야영장, 유료' },
+      { name: '캠프노마드', note: '카라반·오토캠핑, 수영장 있음' }
+    ],
+    campsInformal: [
+      { name: '장경리해수욕장 노지', note: '예전엔 무료 노지캠핑 명소였으나 최근 단속 강화로 야영 금지구역 있음 — 방문 전 확인 필요', caution: true }
+    ]
+  },
+  taean: {
+    label: '태안', center: { lat: 36.6500, lng: 126.2800 }, level: 8,
+    points: [
+      { name: '몽산포', lat: 36.6820, lng: 126.2957, species: ['바지락', '낙지', '개조개', '소라'] },
+      { name: '청포대', lat: 36.6650, lng: 126.2900, species: ['백합', '대맛', '맛조개'] },
+      { name: '방포해변', lat: 36.6100, lng: 126.2600, species: ['바지락', '소라', '맛조개'] },
+      { name: '신두리', lat: 36.8300, lng: 126.1500, species: ['골뱅이', '동죽', '대맛'] }
+    ],
+    campsFormal: [
+      { name: '몽산포 오토캠핑장', note: '전기·샤워장 완비, 1박 약 5만원' },
+      { name: '마검포 아름뜰 캠핑장', note: '조용한 편, 해루질 포인트 인접' }
+    ],
+    campsInformal: [
+      { name: '마검포항 노지', note: '무료 노지 차박, 방파제 안쪽 잔잔한 해변에서 낚시·해루질 병행 가능', caution: false },
+      { name: '솔향기길 해안 차박지', note: '전기·수도 없음, 조용한 감성 차박지', caution: false }
+    ]
+  }
+};
+
+var inactiveMarkers = [
+  { label: '강화도', lat: 37.7472, lng: 126.4875 },
+  { label: '보령·서천', lat: 36.3504, lng: 126.5222 }
+];
+
+var regulatedSpecies = ['낙지', '꽃게', '소라', '백합', '키조개', '주꾸미'];
+
+var defaultVideos = [
+  { title: '영흥도 십리포 소라 해루질', region: '영흥도', species: '소라' },
+  { title: '태안 몽산포 낙지잡이', region: '태안', species: '낙지' }
+];
+
+/* ============================================================
+   상태 저장 (localStorage)
+============================================================ */
+function loadState(key, fallback) {
+  try {
+    var raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+function saveState(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+}
+
+var catchLog = loadState('haerujil.catchLog', {});
+var savedVideos = loadState('haerujil.videos', null);
+if (!savedVideos) { savedVideos = defaultVideos.slice(); saveState('haerujil.videos', savedVideos); }
+
+/* ============================================================
+   앱 상태
+============================================================ */
+var currentRegion = null;
+var currentTab = 'map';
+var today = new Date();
+var calYear = today.getFullYear();
+var calMonth = today.getMonth();
+var selectedDate = null;
+var selectMap = null;
+var regionMap = null;
+var kakaoOk = (typeof kakao !== 'undefined');
+
+/* ============================================================
+   카카오맵 헬퍼
+============================================================ */
+function withKakao(callback) {
+  if (!kakaoOk) return;
+  kakao.maps.load(callback);
+}
+
+function addLabeledMarker(map, lat, lng, label, muted, onClick) {
+  var pos = new kakao.maps.LatLng(lat, lng);
+  new kakao.maps.Marker({ position: pos, map: map });
+  var el = document.createElement('div');
+  el.textContent = label;
+  el.style.cssText = 'background:#fff;border:1px solid ' + (muted ? '#DCD0BA' : '#2F6E73') +
+    ';color:' + (muted ? '#4B5B57' : '#1D4A4F') +
+    ';font-size:12px;padding:2px 8px;border-radius:10px;white-space:nowrap;transform:translate(-50%,-38px);cursor:' +
+    (onClick ? 'pointer' : 'default') + ';';
+  var overlay = new kakao.maps.CustomOverlay({ position: pos, content: el, yAnchor: 1 });
+  overlay.setMap(map);
+  if (onClick) el.addEventListener('click', onClick);
+}
+
+function mapFallback(container, msg) {
+  container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;' +
+    'padding:16px;text-align:center;color:var(--ink-soft);font-size:13px;">' + msg + '</div>';
+}
+
+/* ============================================================
+   물때 · 일출일몰 (추정치 — 실제 API 연동 전 임시 표시용)
+============================================================ */
+function tideInfo(day) {
+  var m = day % 15;
+  var label, cls;
+  if (m <= 1 || m >= 13) { label = '사리'; cls = 'sari'; }
+  else if (m >= 6 && m <= 9) { label = '조금'; cls = 'jogeum'; }
+  else { label = '중물'; cls = 'jung'; }
+  var sunriseMin = 358 + Math.floor(day / 2);
+  var sunsetMin = 1122 - Math.floor(day / 2);
+  function fmt(min) {
+    var h = Math.floor(min / 60), mm = min % 60;
+    return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm;
+  }
+  return { label: label, cls: cls, sunrise: fmt(sunriseMin), sunset: fmt(sunsetMin) };
+}
+
+/* 실제 API 연동용 뼈대. 위 설정값을 채우면 자동으로 사용됩니다.
+   (응답 형식 확인 후 파싱 로직을 이어서 작성해야 완전히 동작합니다.) */
+function fetchRealTide(regionKey, dateStr) {
+  if (TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
+    return Promise.resolve(null);
+  }
+  var obsCode = OBS_CODES[regionKey];
+  if (!obsCode || obsCode.indexOf('YOUR_') === 0) return Promise.resolve(null);
+  var url = TIDE_API_ENDPOINT + '?ServiceKey=' + encodeURIComponent(TIDE_API_KEY) +
+    '&ObsCode=' + obsCode + '&Date=' + dateStr.replace(/-/g, '') + '&ResultType=json';
+  return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) { if (data) console.log('물때 API 응답', data); return data; })
+    .catch(function () { return null; });
+}
+
+/* ============================================================
+   화면 전환
+============================================================ */
+function enterRegion(key) {
+  currentRegion = key;
+  currentTab = 'map';
+  selectedDate = null;
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-region').classList.remove('hidden');
+  renderRegionHeader();
+  renderTab();
+}
+
+function exitRegion() {
+  document.getElementById('screen-region').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+  currentRegion = null;
+  if (selectMap) setTimeout(function () { selectMap.relayout(); }, 0);
+}
+
+/* ============================================================
+   국가 선택(전국 지도) 화면
+============================================================ */
+function renderSelectScreen() {
+  var el = document.getElementById('screen-select');
+  el.innerHTML =
+    '<div class="app-title">해루질</div>' +
+    '<div class="map-box" id="select-map"></div>' +
+    '<p class="map-hint">점을 탭하면 그 지역 정보로 들어갑니다. 회색 점은 아직 정보가 없는 지역이에요.</p>';
+
+  var mapEl = document.getElementById('select-map');
+  if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
+
+  withKakao(function () {
+    var center = new kakao.maps.LatLng(37.0, 126.35);
+    selectMap = new kakao.maps.Map(mapEl, { center: center, level: 11 });
+    Object.keys(regions).forEach(function (key) {
+      var r = regions[key];
+      addLabeledMarker(selectMap, r.center.lat, r.center.lng, r.label, false, function () { enterRegion(key); });
+    });
+    inactiveMarkers.forEach(function (m) {
+      addLabeledMarker(selectMap, m.lat, m.lng, m.label, true, null);
+    });
+  });
+}
+
+/* ============================================================
+   지역 헤더
+============================================================ */
+function renderRegionHeader() {
+  var r = regions[currentRegion];
+  var el = document.getElementById('region-header');
+  el.innerHTML =
+    '<button class="back-btn" id="back-btn" aria-label="지역 선택으로 돌아가기">‹</button>' +
+    '<span class="region-name">' + r.label + '</span>';
+  document.getElementById('back-btn').addEventListener('click', exitRegion);
+}
+
+/* ============================================================
+   해루질 지도 탭
+============================================================ */
+function speciesBadge(sp) {
+  var reg = regulatedSpecies.indexOf(sp) >= 0;
+  return '<span class="badge' + (reg ? ' reg' : '') + '">' + sp + '</span>';
+}
+
+function renderMapTab() {
+  var r = regions[currentRegion];
+  var el = document.getElementById('tab-map');
+  el.innerHTML =
+    '<div class="point-map" id="region-map"></div>' +
+    r.points.map(function (p) {
+      return '<div class="point-card"><div class="point-card-title">📍 ' + p.name + '</div><div>' +
+        p.species.map(speciesBadge).join('') + '</div></div>';
+    }).join('');
+
+  var mapEl = document.getElementById('region-map');
+  if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
+
+  withKakao(function () {
+    var center = new kakao.maps.LatLng(r.center.lat, r.center.lng);
+    regionMap = new kakao.maps.Map(mapEl, { center: center, level: r.level });
+    r.points.forEach(function (p) {
+      addLabeledMarker(regionMap, p.lat, p.lng, p.name, false, null);
+    });
+  });
+}
+
+/* ============================================================
+   캠핑지도 탭
+============================================================ */
+function renderCampTab() {
+  var r = regions[currentRegion];
+  var el = document.getElementById('tab-camp');
+  var html = '<div class="section-label">정식 캠핑장</div>';
+  html += r.campsFormal.map(function (c) {
+    return '<div class="camp-card"><div class="camp-card-title">⛺ ' + c.name + '</div>' +
+      '<div class="camp-card-note">' + c.note + '</div></div>';
+  }).join('');
+  html += '<div class="section-label">차박·노지 스팟</div>';
+  html += r.campsInformal.map(function (c) {
+    var warn = c.caution ? '<span class="badge reg">주의</span>' : '';
+    return '<div class="camp-card"><div class="camp-card-title">🚐 ' + c.name + warn + '</div>' +
+      '<div class="camp-card-note">' + c.note + '</div></div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+/* ============================================================
+   캘린더 탭
+============================================================ */
+function dateKey(d) { return calYear + '-' + (calMonth + 1) + '-' + d; }
+function logKey(dStr) { return currentRegion + '|' + dStr; }
+
+function renderCalendarTab() {
+  var el = document.getElementById('tab-calendar');
+  var first = new Date(calYear, calMonth, 1);
+  var startIdx = first.getDay();
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  var monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
+  var html = '<div class="cal-header">' +
+    '<button id="prev-month" aria-label="이전 달">‹</button>' +
+    '<span class="cal-title">' + calYear + '년 ' + monthNames[calMonth] + '</span>' +
+    '<button id="next-month" aria-label="다음 달">›</button></div>';
+
+  html += '<div class="cal-grid">';
+  ['일', '월', '화', '수', '목', '금', '토'].forEach(function (d) { html += '<div class="cal-dow">' + d + '</div>'; });
+  for (var i = 0; i < startIdx; i++) html += '<div></div>';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var t = tideInfo(d);
+    var dStr = dateKey(d);
+    var hasLog = catchLog[logKey(dStr)] && catchLog[logKey(dStr)].length > 0;
+    var sel = selectedDate === dStr;
+    html += '<button class="cal-day' + (sel ? ' selected' : '') + '" data-date="' + dStr + '" ' +
+      'style="background:' + (t.cls === 'sari' ? '#FAECE7' : t.cls === 'jogeum' ? '#E6F1FB' : '#F1EFE8') + '">' +
+      '<span class="d-num">' + d + '</span><span class="d-tide">' + t.label + '</span>' +
+      (hasLog ? '<span class="d-dot"></span>' : '') + '</button>';
+  }
+  html += '</div><div id="day-detail"></div>';
+  el.innerHTML = html;
+
+  document.getElementById('prev-month').addEventListener('click', function () {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendarTab();
+  });
+  document.getElementById('next-month').addEventListener('click', function () {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendarTab();
+  });
+  Array.prototype.forEach.call(el.querySelectorAll('[data-date]'), function (b) {
+    b.addEventListener('click', function () { selectedDate = b.getAttribute('data-date'); renderCalendarTab(); });
+  });
+  if (selectedDate) renderDayDetail();
+}
+
+function renderDayDetail() {
+  var el = document.getElementById('day-detail');
+  if (!el || !selectedDate) return;
+  var parts = selectedDate.split('-');
+  var d = parseInt(parts[2], 10);
+  var t = tideInfo(d);
+  var r = regions[currentRegion];
+  var allSpecies = [];
+  r.points.forEach(function (p) { p.species.forEach(function (s) { if (allSpecies.indexOf(s) < 0) allSpecies.push(s); }); });
+
+  var key = logKey(selectedDate);
+  var logs = catchLog[key] || [];
+
+  var html = '<div class="day-detail">' +
+    '<div class="day-detail-title">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
+    '<div class="day-detail-sun">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + '</div>' +
+    '<div class="section-label">채집 기록</div>';
+
+  if (logs.length === 0) html += '<p class="no-log">기록이 없습니다.</p>';
+  else html += logs.map(function (l) {
+    return '<div class="log-entry">' + l.species + ' · ' + l.amount + (l.memo ? ' · ' + l.memo : '') + '</div>';
+  }).join('');
+
+  html += '<div class="form-row">' +
+    '<select class="field" id="log-species">' + allSpecies.map(function (s) { return '<option value="' + s + '">' + s + '</option>'; }).join('') + '</select>' +
+    '<input class="field" id="log-amount" type="text" placeholder="예: 15마리">' +
+    '</div>' +
+    '<input class="field" id="log-memo" type="text" placeholder="메모 (선택)">' +
+    '<p class="error-text hidden" id="log-error">수확량을 입력하세요.</p>' +
+    '<button class="btn" id="log-save">＋ 기록 추가</button></div>';
+
+  el.innerHTML = html;
+  document.getElementById('log-save').addEventListener('click', function () {
+    var sp = document.getElementById('log-species').value;
+    var amt = document.getElementById('log-amount').value.trim();
+    var memo = document.getElementById('log-memo').value.trim();
+    var err = document.getElementById('log-error');
+    if (!amt) { err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    if (!catchLog[key]) catchLog[key] = [];
+    catchLog[key].push({ species: sp, amount: amt, memo: memo });
+    saveState('haerujil.catchLog', catchLog);
+    renderCalendarTab();
+  });
+}
+
+/* ============================================================
+   저장한 영상 탭
+============================================================ */
+function renderVideosTab() {
+  var el = document.getElementById('tab-videos');
+  var regionLabel = regions[currentRegion].label;
+  var list = savedVideos.filter(function (v) { return v.region === regionLabel; });
+
+  var html = list.length === 0
+    ? '<p class="no-log">저장된 영상이 없습니다.</p>'
+    : list.map(function (v) {
+        return '<div class="video-card"><div class="video-thumb">▶</div><div class="video-info">' +
+          '<p class="video-title">' + v.title + '</p>' +
+          '<p class="video-meta">' + v.region + ' · ' + v.species + '</p></div></div>';
+      }).join('');
+
+  html += '<div class="section-label">영상 추가</div>' +
+    '<input class="field" id="vid-url" type="text" placeholder="유튜브 링크 붙여넣기">' +
+    '<input class="field" id="vid-title" type="text" placeholder="제목">' +
+    '<p class="error-text hidden" id="vid-error">링크와 제목을 입력하세요.</p>' +
+    '<button class="btn" id="vid-save">＋ 영상 저장</button>';
+
+  el.innerHTML = html;
+  document.getElementById('vid-save').addEventListener('click', function () {
+    var url = document.getElementById('vid-url').value.trim();
+    var title = document.getElementById('vid-title').value.trim();
+    var err = document.getElementById('vid-error');
+    if (!url || !title) { err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    savedVideos.push({ title: title, region: regionLabel, species: '-', url: url });
+    saveState('haerujil.videos', savedVideos);
+    renderVideosTab();
+  });
+}
+
+/* ============================================================
+   탭 전환
+============================================================ */
+function renderTab() {
+  ['map', 'camp', 'calendar', 'videos'].forEach(function (t) {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== currentTab);
+  });
+  if (currentTab === 'map') renderMapTab();
+  if (currentTab === 'camp') renderCampTab();
+  if (currentTab === 'calendar') renderCalendarTab();
+  if (currentTab === 'videos') renderVideosTab();
+  renderTabbar();
+}
+
+function renderTabbar() {
+  var tabs = [
+    { id: 'map', label: '해루질 지도', icon: '📍' },
+    { id: 'camp', label: '캠핑지도', icon: '⛺' },
+    { id: 'calendar', label: '캘린더', icon: '📅' },
+    { id: 'videos', label: '저장한 영상', icon: '▶' }
+  ];
+  var el = document.getElementById('tabbar');
+  el.innerHTML = tabs.map(function (t) {
+    return '<button class="tab-btn' + (t.id === currentTab ? ' active' : '') + '" data-tab="' + t.id + '">' +
+      '<span class="tab-icon">' + t.icon + '</span><span>' + t.label + '</span></button>';
+  }).join('');
+  Array.prototype.forEach.call(el.querySelectorAll('button'), function (b) {
+    b.addEventListener('click', function () { currentTab = b.getAttribute('data-tab'); renderTab(); });
+  });
+}
+
+/* ============================================================
+   초기 렌더
+============================================================ */
+function initApp() {
+  var app = document.getElementById('app');
+  app.innerHTML =
+    '<div id="screen-select"></div>' +
+    '<div id="screen-region" class="hidden">' +
+      '<div class="region-header" id="region-header"></div>' +
+      '<div class="screen-area">' +
+        '<div id="tab-map"></div>' +
+        '<div id="tab-camp" class="hidden"></div>' +
+        '<div id="tab-calendar" class="hidden"></div>' +
+        '<div id="tab-videos" class="hidden"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="tabbar" id="tabbar-outer"></div>';
+  renderSelectScreen();
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
