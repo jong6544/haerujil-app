@@ -293,12 +293,17 @@ function importDataFromFile(file) {
   reader.readAsText(file);
 }
 
-function renderToolbar() {
-  var el = document.getElementById('toolbar');
+function renderMoreTab(el) {
   el.innerHTML =
+    '<div class="section-label">설정</div>' +
+    '<div class="camp-card"><div class="camp-card-title">📦 데이터 백업</div>' +
+    '<div class="camp-card-note" style="margin-bottom:10px;">채집 기록과 저장한 영상을 파일로 저장하거나, 저장해둔 파일에서 불러올 수 있어요.</div>' +
+    '<div style="display:flex;gap:8px;">' +
     '<button class="pill-btn" id="export-btn">내보내기</button>' +
     '<label class="pill-btn" id="import-label" style="cursor:pointer;">불러오기' +
-    '<input type="file" id="import-input" accept="application/json" style="display:none;"></label>';
+    '<input type="file" id="import-input" accept="application/json" style="display:none;"></label>' +
+    '</div></div>' +
+    '<p class="no-log" style="margin-top:14px;">앞으로 설정이나 다른 기능이 추가되면 이 탭에 계속 모아둘게요.</p>';
   document.getElementById('export-btn').addEventListener('click', exportData);
   document.getElementById('import-input').addEventListener('change', function (e) {
     if (e.target.files && e.target.files[0]) importDataFromFile(e.target.files[0]);
@@ -343,6 +348,7 @@ function renderContent() {
   }
   if (currentTab === 'calendar') { renderCalendarTab(el); return; }
   if (currentTab === 'videos') { renderVideosTab(el); return; }
+  if (currentTab === 'more') { renderMoreTab(el); return; }
 }
 
 function renderRegionPrompt(el) {
@@ -636,7 +642,8 @@ function renderTabbar() {
     { id: 'map', label: '해루질 지도', icon: '📍' },
     { id: 'camp', label: '캠핑지도', icon: '⛺' },
     { id: 'calendar', label: '캘린더', icon: '📅' },
-    { id: 'videos', label: '저장한 영상', icon: '▶' }
+    { id: 'videos', label: '저장한 영상', icon: '▶' },
+    { id: 'more', label: '더보기', icon: '⋯' }
   ];
   var el = document.getElementById('tabbar');
   el.innerHTML = tabs.map(function (t) {
@@ -659,11 +666,9 @@ function initApp() {
   var app = document.getElementById('app');
   app.innerHTML =
     '<div class="app-title">해루질</div>' +
-    '<div id="toolbar" style="display:flex;gap:8px;margin-bottom:12px;"></div>' +
     '<div id="region-bar"></div>' +
     '<div class="screen-area" id="content-area"></div>' +
     '<div class="tabbar" id="tabbar"></div>';
-  renderToolbar();
   renderAll();
 }
 
