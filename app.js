@@ -1,4 +1,16 @@
 /* ============================================================
+   오류가 나면 화면에 바로 보이게 표시 (디버깅용)
+============================================================ */
+window.addEventListener('error', function (e) {
+  var app = document.getElementById('app');
+  if (!app) return;
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#FBEBD3;color:#6B4310;padding:12px;border-radius:10px;margin-bottom:12px;font-size:13px;white-space:pre-wrap;border:1px solid #E3B879;';
+  box.textContent = '오류 발생: ' + e.message + '  (' + (e.filename ? e.filename.split('/').pop() : '') + ':' + e.lineno + ')';
+  app.prepend(box);
+});
+
+/* ============================================================
    설정값 — 아래 세 가지를 본인 값으로 바꿔주세요.
    1) index.html 안의 카카오맵 SDK 스크립트 태그에서 YOUR_KAKAO_JS_KEY 교체
    2) 아래 TIDE_API_KEY: 공공데이터포털에서 받은 인증키(Decoding)
@@ -100,7 +112,7 @@ var savedVideos = loadState('haerujil.videos', null);
 if (!savedVideos) { savedVideos = defaultVideos.slice(); saveState('haerujil.videos', savedVideos); }
 
 /* ============================================================
-   앱 상태
+   앱 상태 — 탭은 항상 떠 있고, 지역은 그 안에서 선택/변경합니다.
 ============================================================ */
 var currentRegion = null;
 var currentTab = 'map';
@@ -157,8 +169,6 @@ function tideInfo(day) {
   return { label: label, cls: cls, sunrise: fmt(sunriseMin), sunset: fmt(sunsetMin) };
 }
 
-/* 실제 API 연동용 뼈대. 위 설정값을 채우면 자동으로 사용됩니다.
-   (응답 형식 확인 후 파싱 로직을 이어서 작성해야 완전히 동작합니다.) */
 function fetchRealTide(regionKey, dateStr) {
   if (TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
     return Promise.resolve(null);
@@ -173,34 +183,75 @@ function fetchRealTide(regionKey, dateStr) {
 }
 
 /* ============================================================
-   화면 전환
+   전체 다시 그리기
 ============================================================ */
-function enterRegion(key) {
-  currentRegion = key;
-  currentTab = 'map';
-  selectedDate = null;
-  document.getElementById('screen-select').classList.add('hidden');
-  document.getElementById('screen-region').classList.remove('hidden');
-  renderRegionHeader();
-  renderTab();
-}
-
-function exitRegion() {
-  document.getElementById('screen-region').classList.add('hidden');
-  document.getElementById('screen-select').classList.remove('hidden');
-  currentRegion = null;
-  if (selectMap) setTimeout(function () { selectMap.relayout(); }, 0);
+function renderAll() {
+  renderRegionBar();
+  renderContent();
+  renderTabbar();
 }
 
 /* ============================================================
-   국가 선택(전국 지도) 화면
+   상단 지역 표시줄 (항상 보임)
 ============================================================ */
-function renderSelectScreen() {
-  var el = document.getElementById('screen-select');
+function renderRegionBar() {
+  var el = document.getElementById('region-bar');
+  if (!currentRegion) {
+    el.innerHTML = '';
+    return;
+  }
+  var r = regions[currentRegion];
+  el.innerHTML = '<div class="region-topbar">' +
+    '<span class="region-name">' + r.label + '</span>' +
+    '<button class="pill-btn" id="change-region">지역 변경</button></div>';
+  document.getElementById('change-region').addEventListener('click', function () {
+    currentRegion = null;
+    selectedDate = null;
+    renderAll();
+  });
+}
+
+/* ============================================================
+   콘텐츠 영역 (탭 + 지역 선택 여부에 따라 분기)
+============================================================ */
+function renderContent() {
+  var el = document.getElementById('content-area');
+  if (currentTab === 'map') {
+    if (!currentRegion) renderNationalMap(el);
+    else renderRegionMap(el);
+    return;
+  }
+  if (!currentRegion) { renderRegionPrompt(el); return; }
+  if (currentTab === 'camp') renderCampTab(el);
+  if (currentTab === 'calendar') renderCalendarTab(el);
+  if (currentTab === 'videos') renderVideosTab(el);
+}
+
+function renderRegionPrompt(el) {
+  el.innerHTML = '<p class="no-log" style="margin-bottom:14px;">이 탭을 보려면 먼저 지역을 선택해주세요.</p>' +
+    Object.keys(regions).map(function (key) {
+      return '<button class="region-pick-btn" data-pick="' + key + '">📍 ' + regions[key].label + '</button>';
+    }).join('');
+  Array.prototype.forEach.call(el.querySelectorAll('[data-pick]'), function (b) {
+    b.addEventListener('click', function () {
+      currentRegion = b.getAttribute('data-pick');
+      renderAll();
+    });
+  });
+}
+
+/* ============================================================
+   해루질 지도 탭 — 전국 지도(지역 미선택) / 지역 지도(선택 후)
+============================================================ */
+function speciesBadge(sp) {
+  var reg = regulatedSpecies.indexOf(sp) >= 0;
+  return '<span class="badge' + (reg ? ' reg' : '') + '">' + sp + '</span>';
+}
+
+function renderNationalMap(el) {
   el.innerHTML =
-    '<div class="app-title">해루질</div>' +
     '<div class="map-box" id="select-map"></div>' +
-    '<p class="map-hint">점을 탭하면 그 지역 정보로 들어갑니다. 회색 점은 아직 정보가 없는 지역이에요.</p>';
+    '<p class="map-hint">점을 탭하면 그 지역으로 들어갑니다. 회색 점은 아직 정보가 없는 지역이에요.</p>';
 
   var mapEl = document.getElementById('select-map');
   if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
@@ -210,7 +261,10 @@ function renderSelectScreen() {
     selectMap = new kakao.maps.Map(mapEl, { center: center, level: 11 });
     Object.keys(regions).forEach(function (key) {
       var r = regions[key];
-      addLabeledMarker(selectMap, r.center.lat, r.center.lng, r.label, false, function () { enterRegion(key); });
+      addLabeledMarker(selectMap, r.center.lat, r.center.lng, r.label, false, function () {
+        currentRegion = key;
+        renderAll();
+      });
     });
     inactiveMarkers.forEach(function (m) {
       addLabeledMarker(selectMap, m.lat, m.lng, m.label, true, null);
@@ -218,29 +272,8 @@ function renderSelectScreen() {
   });
 }
 
-/* ============================================================
-   지역 헤더
-============================================================ */
-function renderRegionHeader() {
+function renderRegionMap(el) {
   var r = regions[currentRegion];
-  var el = document.getElementById('region-header');
-  el.innerHTML =
-    '<button class="back-btn" id="back-btn" aria-label="지역 선택으로 돌아가기">‹</button>' +
-    '<span class="region-name">' + r.label + '</span>';
-  document.getElementById('back-btn').addEventListener('click', exitRegion);
-}
-
-/* ============================================================
-   해루질 지도 탭
-============================================================ */
-function speciesBadge(sp) {
-  var reg = regulatedSpecies.indexOf(sp) >= 0;
-  return '<span class="badge' + (reg ? ' reg' : '') + '">' + sp + '</span>';
-}
-
-function renderMapTab() {
-  var r = regions[currentRegion];
-  var el = document.getElementById('tab-map');
   el.innerHTML =
     '<div class="point-map" id="region-map"></div>' +
     r.points.map(function (p) {
@@ -263,9 +296,8 @@ function renderMapTab() {
 /* ============================================================
    캠핑지도 탭
 ============================================================ */
-function renderCampTab() {
+function renderCampTab(el) {
   var r = regions[currentRegion];
-  var el = document.getElementById('tab-camp');
   var html = '<div class="section-label">정식 캠핑장</div>';
   html += r.campsFormal.map(function (c) {
     return '<div class="camp-card"><div class="camp-card-title">⛺ ' + c.name + '</div>' +
@@ -286,8 +318,7 @@ function renderCampTab() {
 function dateKey(d) { return calYear + '-' + (calMonth + 1) + '-' + d; }
 function logKey(dStr) { return currentRegion + '|' + dStr; }
 
-function renderCalendarTab() {
-  var el = document.getElementById('tab-calendar');
+function renderCalendarTab(el) {
   var first = new Date(calYear, calMonth, 1);
   var startIdx = first.getDay();
   var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
@@ -315,13 +346,13 @@ function renderCalendarTab() {
   el.innerHTML = html;
 
   document.getElementById('prev-month').addEventListener('click', function () {
-    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendarTab();
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendarTab(el);
   });
   document.getElementById('next-month').addEventListener('click', function () {
-    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendarTab();
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendarTab(el);
   });
   Array.prototype.forEach.call(el.querySelectorAll('[data-date]'), function (b) {
-    b.addEventListener('click', function () { selectedDate = b.getAttribute('data-date'); renderCalendarTab(); });
+    b.addEventListener('click', function () { selectedDate = b.getAttribute('data-date'); renderCalendarTab(el); });
   });
   if (selectedDate) renderDayDetail();
 }
@@ -368,15 +399,14 @@ function renderDayDetail() {
     if (!catchLog[key]) catchLog[key] = [];
     catchLog[key].push({ species: sp, amount: amt, memo: memo });
     saveState('haerujil.catchLog', catchLog);
-    renderCalendarTab();
+    renderCalendarTab(document.getElementById('content-area'));
   });
 }
 
 /* ============================================================
    저장한 영상 탭
 ============================================================ */
-function renderVideosTab() {
-  var el = document.getElementById('tab-videos');
+function renderVideosTab(el) {
   var regionLabel = regions[currentRegion].label;
   var list = savedVideos.filter(function (v) { return v.region === regionLabel; });
 
@@ -403,24 +433,13 @@ function renderVideosTab() {
     err.classList.add('hidden');
     savedVideos.push({ title: title, region: regionLabel, species: '-', url: url });
     saveState('haerujil.videos', savedVideos);
-    renderVideosTab();
+    renderVideosTab(el);
   });
 }
 
 /* ============================================================
-   탭 전환
+   하단 탭 바 — 항상 떠 있음
 ============================================================ */
-function renderTab() {
-  ['map', 'camp', 'calendar', 'videos'].forEach(function (t) {
-    document.getElementById('tab-' + t).classList.toggle('hidden', t !== currentTab);
-  });
-  if (currentTab === 'map') renderMapTab();
-  if (currentTab === 'camp') renderCampTab();
-  if (currentTab === 'calendar') renderCalendarTab();
-  if (currentTab === 'videos') renderVideosTab();
-  renderTabbar();
-}
-
 function renderTabbar() {
   var tabs = [
     { id: 'map', label: '해루질 지도', icon: '📍' },
@@ -434,7 +453,11 @@ function renderTabbar() {
       '<span class="tab-icon">' + t.icon + '</span><span>' + t.label + '</span></button>';
   }).join('');
   Array.prototype.forEach.call(el.querySelectorAll('button'), function (b) {
-    b.addEventListener('click', function () { currentTab = b.getAttribute('data-tab'); renderTab(); });
+    b.addEventListener('click', function () {
+      currentTab = b.getAttribute('data-tab');
+      selectedDate = null;
+      renderAll();
+    });
   });
 }
 
@@ -444,18 +467,11 @@ function renderTabbar() {
 function initApp() {
   var app = document.getElementById('app');
   app.innerHTML =
-    '<div id="screen-select"></div>' +
-    '<div id="screen-region" class="hidden">' +
-      '<div class="region-header" id="region-header"></div>' +
-      '<div class="screen-area">' +
-        '<div id="tab-map"></div>' +
-        '<div id="tab-camp" class="hidden"></div>' +
-        '<div id="tab-calendar" class="hidden"></div>' +
-        '<div id="tab-videos" class="hidden"></div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="tabbar" id="tabbar-outer"></div>';
-  renderSelectScreen();
+    '<div class="app-title">해루질</div>' +
+    '<div id="region-bar"></div>' +
+    '<div class="screen-area" id="content-area"></div>' +
+    '<div class="tabbar" id="tabbar"></div>';
+  renderAll();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
