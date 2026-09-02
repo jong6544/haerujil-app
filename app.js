@@ -12,24 +12,26 @@ window.addEventListener('error', function (e) {
 
 /* ============================================================
    설정값 — 아래 세 가지를 본인 값으로 바꿔주세요.
-   1) index.html 안의 카카오맵 SDK 스크립트 태그에서 YOUR_KAKAO_JS_KEY 교체
-   2) 아래 TIDE_API_KEY: 공공데이터포털에서 받은 인증키(Decoding)
-   3) 아래 TIDE_API_ENDPOINT, OBS_CODES: 데이터포털 승인 화면의
-      Swagger/참고문서에 나온 정확한 요청 URL과 관측소 코드로 교체
-      (이 두 값은 제가 100% 확신할 수 없어 자리표시자로 남겨뒀습니다.
-       확정 전까지는 달력의 물때가 아래 tideInfo()의 추정값으로 표시됩니다.)
+   1) index.html 안의 카카오맵 SDK 스크립트 태그에서 YOUR_KAKAO_JS_KEY 교체 (완료됨)
+   2) 아래 TIDE_API_KEY: 공공데이터포털에서 받은 인증키(Decoding) (완료됨)
+   3) 아래 OBS_CODES: 왕산(영종왕산)·영흥도·안흥 관측소의 정확한 코드(DT_xxxx)로 교체
+      확인 방법: khoa.go.kr에서 제공하는 "조위관측소 운영 현황" 자료(공공데이터포털
+      15146602)를 열어 "영종왕산", "영흥도", "안흥" 이름으로 검색하면 관측소 고유번호가
+      나와요. 이 값을 채우기 전까지는 달력이 tideInfo()의 추정값으로 표시됩니다.
+      (요청주소는 이번에 검색으로 확인했지만, 실제 응답 형식은 100% 확신할 수 없어서
+       parseTideResponse()는 응답을 콘솔에 로그만 남기고 화면 표시는 아직 보수적으로
+       처리해뒀습니다 — 실제 켜보시고 콘솔 로그를 알려주시면 화면 표시까지 마무리할게요.)
 ============================================================ */
 var TIDE_API_KEY = 'IRsSSSvAIRJ8yzg/0FRHuB046Llj2SkN/PJxXUE4QFIuZgMJA8f30kbyruOLZVBJwxRIlejEIDht2efEcwCQzA==';
-var TIDE_API_ENDPOINT = 'YOUR_TIDE_API_ENDPOINT';
+var TIDE_API_ENDPOINT = 'https://www.khoa.go.kr/api/oceangrid/tideObsPre/search.do';
 var OBS_CODES = {
-  wangsan: 'YOUR_OBS_CODE_YEONGJONGDO',
+  wangsan: 'YOUR_OBS_CODE_YEONGJONGWANGSAN',
   yeongheung: 'YOUR_OBS_CODE_YEONGHEUNGDO',
   taean: 'YOUR_OBS_CODE_ANHEUNG'
 };
 
 /* ============================================================
-   데이터 — 좌표는 제가 대략적으로 넣은 값이라 실제로 켜보시고
-   핀 위치가 어긋나면 아래 lat/lng 값을 조정해주세요.
+   데이터 — 좌표는 대략적인 값입니다.
 ============================================================ */
 var regions = {
   wangsan: {
@@ -89,9 +91,18 @@ var inactiveMarkers = [
 
 var regulatedSpecies = ['낙지', '꽃게', '소라', '백합', '키조개', '주꾸미'];
 
+var regInfo = {
+  '낙지': '금어기 6.1~6.30 (인천·경기 지역은 6.21~7.20으로 별도 적용)',
+  '꽃게': '금어기 6.21~8.20, 두흉갑장 6.4cm 이하 포획 금지',
+  '소라': '금어기 6.1~8.31, 각고 5cm 이하 금지 (서해 소라는 종 확인이 필요할 수 있음)',
+  '백합': '금어기 7.1~8.20, 각장 5cm 이하 금지',
+  '키조개': '금어기 7.1~8.31, 각장 약 18cm 이하 금지',
+  '주꾸미': '금어기 5.11~8.31'
+};
+
 var defaultVideos = [
-  { title: '영흥도 십리포 소라 해루질', region: '영흥도', species: '소라' },
-  { title: '태안 몽산포 낙지잡이', region: '태안', species: '낙지' }
+  { title: '영흥도 십리포 소라 해루질', region: '영흥도', species: '소라', url: '' },
+  { title: '태안 몽산포 낙지잡이', region: '태안', species: '낙지', url: '' }
 ];
 
 /* ============================================================
@@ -112,7 +123,7 @@ var savedVideos = loadState('haerujil.videos', null);
 if (!savedVideos) { savedVideos = defaultVideos.slice(); saveState('haerujil.videos', savedVideos); }
 
 /* ============================================================
-   앱 상태 — 탭은 항상 떠 있고, 지역은 그 안에서 선택/변경합니다.
+   앱 상태
 ============================================================ */
 var currentRegion = null;
 var currentTab = 'map';
@@ -170,7 +181,7 @@ function tideInfo(day) {
 }
 
 function fetchRealTide(regionKey, dateStr) {
-  if (TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
+  if (!TIDE_API_ENDPOINT || TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
     return Promise.resolve(null);
   }
   var obsCode = OBS_CODES[regionKey];
@@ -178,7 +189,7 @@ function fetchRealTide(regionKey, dateStr) {
   var url = TIDE_API_ENDPOINT + '?ServiceKey=' + encodeURIComponent(TIDE_API_KEY) +
     '&ObsCode=' + obsCode + '&Date=' + dateStr.replace(/-/g, '') + '&ResultType=json';
   return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (data) { if (data) console.log('물때 API 응답', data); return data; })
+    .then(function (data) { if (data) console.log('물때 API 응답(콘솔 확인용)', data); return data; })
     .catch(function () { return null; });
 }
 
@@ -189,6 +200,50 @@ function renderAll() {
   renderRegionBar();
   renderContent();
   renderTabbar();
+}
+
+/* ============================================================
+   상단 도구줄 — 항상 보임 (내보내기/불러오기)
+============================================================ */
+function exportData() {
+  var payload = { catchLog: catchLog, savedVideos: savedVideos, exportedAt: new Date().toISOString() };
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'haerujil-backup-' + Date.now() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importDataFromFile(file) {
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var payload = JSON.parse(String(reader.result));
+      if (payload.catchLog) { catchLog = payload.catchLog; saveState('haerujil.catchLog', catchLog); }
+      if (payload.savedVideos) { savedVideos = payload.savedVideos; saveState('haerujil.videos', savedVideos); }
+      renderAll();
+      window.alert('불러오기 완료했어요.');
+    } catch (e) {
+      window.alert('이 파일을 읽을 수 없어요. 내보내기로 저장한 파일인지 확인해주세요.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function renderToolbar() {
+  var el = document.getElementById('toolbar');
+  el.innerHTML =
+    '<button class="pill-btn" id="export-btn">내보내기</button>' +
+    '<label class="pill-btn" id="import-label" style="cursor:pointer;">불러오기' +
+    '<input type="file" id="import-input" accept="application/json" style="display:none;"></label>';
+  document.getElementById('export-btn').addEventListener('click', exportData);
+  document.getElementById('import-input').addEventListener('change', function (e) {
+    if (e.target.files && e.target.files[0]) importDataFromFile(e.target.files[0]);
+  });
 }
 
 /* ============================================================
@@ -213,7 +268,7 @@ function renderRegionBar() {
 }
 
 /* ============================================================
-   콘텐츠 영역 (탭 + 지역 선택 여부에 따라 분기)
+   콘텐츠 영역
 ============================================================ */
 function renderContent() {
   var el = document.getElementById('content-area');
@@ -245,11 +300,22 @@ function renderRegionPrompt(el) {
 }
 
 /* ============================================================
-   해루질 지도 탭 — 전국 지도(지역 미선택) / 지역 지도(선택 후)
+   해루질 지도 탭
 ============================================================ */
 function speciesBadge(sp) {
   var reg = regulatedSpecies.indexOf(sp) >= 0;
-  return '<span class="badge' + (reg ? ' reg' : '') + '">' + sp + '</span>';
+  if (reg) return '<button class="badge reg" data-reg-info="' + sp + '">' + sp + ' ⓘ</button>';
+  return '<span class="badge">' + sp + '</span>';
+}
+
+function attachRegInfoHandlers(el) {
+  var detail = document.getElementById('reg-detail');
+  Array.prototype.forEach.call(el.querySelectorAll('[data-reg-info]'), function (b) {
+    b.addEventListener('click', function () {
+      var sp = b.getAttribute('data-reg-info');
+      if (detail) detail.textContent = '⚠ ' + sp + ' — ' + (regInfo[sp] || '정확한 규정은 지자체 확인이 필요해요.');
+    });
+  });
 }
 
 function renderNationalMap(el) {
@@ -283,7 +349,10 @@ function renderRegionMap(el) {
     r.points.map(function (p) {
       return '<div class="point-card"><div class="point-card-title">📍 ' + p.name + '</div><div>' +
         p.species.map(speciesBadge).join('') + '</div></div>';
-    }).join('');
+    }).join('') +
+    '<p id="reg-detail" class="camp-card-note" style="min-height:18px;"></p>';
+
+  attachRegInfoHandlers(el);
 
   var mapEl = document.getElementById('region-map');
   if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
@@ -309,7 +378,7 @@ function renderCampTab(el) {
   }).join('');
   html += '<div class="section-label">차박·노지 스팟</div>';
   html += r.campsInformal.map(function (c) {
-    var warn = c.caution ? '<span class="badge reg">주의</span>' : '';
+    var warn = c.caution ? '<span class="badge reg" style="cursor:default;">주의</span>' : '';
     return '<div class="camp-card"><div class="camp-card-title">🚐 ' + c.name + warn + '</div>' +
       '<div class="camp-card-note">' + c.note + '</div></div>';
   }).join('');
@@ -321,6 +390,31 @@ function renderCampTab(el) {
 ============================================================ */
 function dateKey(d) { return calYear + '-' + (calMonth + 1) + '-' + d; }
 function logKey(dStr) { return currentRegion + '|' + dStr; }
+
+function monthlySummaryHtml() {
+  var totals = {};
+  Object.keys(catchLog).forEach(function (key) {
+    if (key.indexOf(currentRegion + '|') !== 0) return;
+    var dStr = key.slice(currentRegion.length + 1);
+    var dp = dStr.split('-');
+    if (parseInt(dp[0], 10) !== calYear || parseInt(dp[1], 10) !== (calMonth + 1)) return;
+    catchLog[key].forEach(function (l) {
+      if (l.qty == null || l.qty === '') return;
+      var unit = l.unit || '';
+      if (!totals[l.species]) totals[l.species] = {};
+      totals[l.species][unit] = (totals[l.species][unit] || 0) + Number(l.qty);
+    });
+  });
+  var sp = Object.keys(totals);
+  if (!sp.length) return '';
+  var html = '<div class="section-label">이번 달 채집 요약</div>';
+  html += sp.map(function (s) {
+    var units = totals[s];
+    var parts = Object.keys(units).map(function (u) { return units[u] + u; });
+    return '<div class="log-entry">' + s + ' · ' + parts.join(', ') + '</div>';
+  }).join('');
+  return html;
+}
 
 function renderCalendarTab(el) {
   if (!currentRegion) currentRegion = Object.keys(regions)[0];
@@ -353,7 +447,9 @@ function renderCalendarTab(el) {
       '<span class="d-num">' + d + '</span><span class="d-tide">' + t.label + '</span>' +
       (hasLog ? '<span class="d-dot"></span>' : '') + '</button>';
   }
-  html += '</div><div id="day-detail"></div>';
+  html += '</div>';
+  html += monthlySummaryHtml();
+  html += '<div id="day-detail"></div>';
   el.innerHTML = html;
 
   document.getElementById('prev-month').addEventListener('click', function () {
@@ -396,27 +492,30 @@ function renderDayDetail() {
 
   if (logs.length === 0) html += '<p class="no-log">기록이 없습니다.</p>';
   else html += logs.map(function (l) {
-    return '<div class="log-entry">' + l.species + ' · ' + l.amount + (l.memo ? ' · ' + l.memo : '') + '</div>';
+    var amountText = (l.qty != null && l.qty !== '') ? (l.qty + (l.unit || '')) : (l.amount || '');
+    return '<div class="log-entry">' + l.species + ' · ' + amountText + (l.memo ? ' · ' + l.memo : '') + '</div>';
   }).join('');
 
   html += '<div class="form-row">' +
-    '<select class="field" id="log-species">' + allSpecies.map(function (s) { return '<option value="' + s + '">' + s + '</option>'; }).join('') + '</select>' +
-    '<input class="field" id="log-amount" type="text" placeholder="예: 15마리">' +
+    '<select class="field" id="log-species" style="flex:1.3;">' + allSpecies.map(function (s) { return '<option value="' + s + '">' + s + '</option>'; }).join('') + '</select>' +
+    '<input class="field" id="log-qty" type="number" inputmode="numeric" min="0" placeholder="수량" style="flex:0.7;">' +
+    '<select class="field" id="log-unit" style="flex:0.7;"><option value="마리">마리</option><option value="kg">kg</option><option value="개">개</option></select>' +
     '</div>' +
     '<input class="field" id="log-memo" type="text" placeholder="메모 (선택)">' +
-    '<p class="error-text hidden" id="log-error">수확량을 입력하세요.</p>' +
+    '<p class="error-text hidden" id="log-error">수량을 입력하세요.</p>' +
     '<button class="btn" id="log-save">＋ 기록 추가</button></div>';
 
   el.innerHTML = html;
   document.getElementById('log-save').addEventListener('click', function () {
     var sp = document.getElementById('log-species').value;
-    var amt = document.getElementById('log-amount').value.trim();
+    var qty = document.getElementById('log-qty').value.trim();
+    var unit = document.getElementById('log-unit').value;
     var memo = document.getElementById('log-memo').value.trim();
     var err = document.getElementById('log-error');
-    if (!amt) { err.classList.remove('hidden'); return; }
+    if (!qty) { err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
     if (!catchLog[key]) catchLog[key] = [];
-    catchLog[key].push({ species: sp, amount: amt, memo: memo });
+    catchLog[key].push({ species: sp, qty: qty, unit: unit, memo: memo });
     saveState('haerujil.catchLog', catchLog);
     renderCalendarTab(document.getElementById('content-area'));
   });
@@ -425,15 +524,26 @@ function renderDayDetail() {
 /* ============================================================
    저장한 영상 탭
 ============================================================ */
+function youtubeVideoId(url) {
+  if (!url) return null;
+  var m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+
 function renderVideosTab(el) {
   var list = savedVideos;
 
   var html = list.length === 0
     ? '<p class="no-log">저장된 영상이 없습니다.</p>'
     : list.map(function (v) {
-        return '<div class="video-card"><div class="video-thumb">▶</div><div class="video-info">' +
+        var vid = youtubeVideoId(v.url);
+        var thumb = vid
+          ? '<img src="https://img.youtube.com/vi/' + vid + '/mqdefault.jpg" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0;">'
+          : '<div class="video-thumb">▶</div>';
+        var href = v.url ? v.url : '#';
+        return '<a class="video-card" href="' + href + '" target="_blank" rel="noopener">' + thumb + '<div class="video-info">' +
           '<p class="video-title">' + v.title + '</p>' +
-          '<p class="video-meta">' + v.region + ' · ' + v.species + '</p></div></div>';
+          '<p class="video-meta">' + v.region + ' · ' + v.species + '</p></div></a>';
       }).join('');
 
   html += '<div class="section-label">영상 추가</div>' +
@@ -490,9 +600,11 @@ function initApp() {
   var app = document.getElementById('app');
   app.innerHTML =
     '<div class="app-title">해루질</div>' +
+    '<div id="toolbar" style="display:flex;gap:8px;margin-bottom:12px;"></div>' +
     '<div id="region-bar"></div>' +
     '<div class="screen-area" id="content-area"></div>' +
     '<div class="tabbar" id="tabbar"></div>';
+  renderToolbar();
   renderAll();
 }
 

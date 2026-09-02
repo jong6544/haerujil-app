@@ -130,9 +130,14 @@ h1, h2, h3, p { margin: 0; }
   margin: 2px 4px 0 0;
   background: #E1EFE9;
   color: #1D4A4F;
+  border: none;
+  font-family: inherit;
 }
 
+button.badge { cursor: pointer; }
 .badge.reg { background: var(--caution-bg); color: var(--caution-text); }
+
+.video-card { text-decoration: none; }
 
 .camp-card-note { font-size: 14px; color: var(--ink-soft); }
 
