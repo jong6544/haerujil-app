@@ -81,13 +81,72 @@ var regions = {
       { name: '마검포항 노지', note: '무료 노지 차박, 방파제 안쪽 잔잔한 해변에서 낚시·해루질 병행 가능', caution: false },
       { name: '솔향기길 해안 차박지', note: '전기·수도 없음, 조용한 감성 차박지', caution: false }
     ]
+  },
+  ganghwa: {
+    label: '강화도', center: { lat: 37.6200, lng: 126.4000 }, level: 9,
+    points: [
+      { name: '동막해변', lat: 37.5980, lng: 126.3880, species: ['바지락', '동죽', '칠게', '쌀무늬고둥'] },
+      { name: '동검도', lat: 37.5830, lng: 126.4550, species: ['낙지'] },
+      { name: '외포항', lat: 37.6550, lng: 126.3350, species: ['꽃게', '소라'] },
+      { name: '초지대교 인근', lat: 37.6280, lng: 126.5000, species: ['바지락', '동죽'] },
+      { name: '민머루해수욕장(석모도)', lat: 37.6250, lng: 126.2950, species: ['바지락', '고둥'] }
+    ],
+    campsFormal: [
+      { name: '동막해변 야영장', note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
+    ],
+    campsInformal: [
+      { name: '외포항 주변 노지', note: '석모도 여객선터미널 인근, 방문 전 주차·야영 가능 여부 확인 필요', caution: true }
+    ]
+  },
+  boryeong: {
+    label: '보령·서천', center: { lat: 36.3300, lng: 126.5000 }, level: 9,
+    points: [
+      { name: '무창포해수욕장', lat: 36.3250, lng: 126.4900, species: ['굴', '바지락', '고둥', '골뱅이', '홍합'] },
+      { name: '독산해수욕장', lat: 36.3100, lng: 126.4850, species: ['바지락', '동죽'] },
+      { name: '대천해수욕장', lat: 36.3180, lng: 126.5130, species: ['바지락', '동죽'] }
+    ],
+    campsFormal: [
+      { name: '독산해수욕장 야영장·오토캠핑장', note: '소나무 방풍림, 정식 시설' }
+    ],
+    campsInformal: [
+      { name: '무창포 인근 노지', note: '신비의 바닷길(석대도) 개방 시간에 맞춰 방문 — 물때 확인 필수', caution: true }
+    ]
+  },
+  jebu: {
+    label: '제부도·궁평항', center: { lat: 37.2000, lng: 126.6500 }, level: 9,
+    points: [
+      { name: '제부도해변', lat: 37.1980, lng: 126.6250, species: ['바지락', '쏙(쏙새우)', '낙지', '갯지렁이'] },
+      { name: '궁평항', lat: 37.2020, lng: 126.6800, species: ['바지락', '동죽', '꽃게'] }
+    ],
+    campsFormal: [],
+    campsInformal: [
+      { name: '제부도 진입 전 주차장 인근', note: '바닷길 통행시간(물때)에 따라 입·출도 가능 여부가 달라짐 — 반드시 사전 확인', caution: true }
+    ]
+  },
+  muui: {
+    label: '무의도', center: { lat: 37.4470, lng: 126.4190 }, level: 9,
+    points: [
+      { name: '하나개해수욕장', lat: 37.4470, lng: 126.4190, species: ['동죽', '소라', '방게', '바지락', '백합', '주꾸미'] }
+    ],
+    campsFormal: [
+      { name: '하나개해수욕장 야영지', note: '취사 가능, 방갈로 있음' }
+    ],
+    campsInformal: []
+  },
+  daebu: {
+    label: '대부도', center: { lat: 37.2450, lng: 126.5900 }, level: 9,
+    points: [
+      { name: '방아머리해수욕장', lat: 37.2570, lng: 126.5820, species: ['바지락', '동죽', '게', '고둥', '꽃게', '망둥어'] },
+      { name: '탄도항', lat: 37.2210, lng: 126.5590, species: ['바지락', '동죽'] }
+    ],
+    campsFormal: [],
+    campsInformal: [
+      { name: '방아머리 인근 바다향기테마파크 노지캠핑지', note: '무료, 여러 대가 함께 캠핑 가능(떼캠 명소), 화장실 있음', caution: false }
+    ]
   }
 };
 
-var inactiveMarkers = [
-  { label: '강화도', lat: 37.7472, lng: 126.4875 },
-  { label: '보령·서천', lat: 36.3504, lng: 126.5222 }
-];
+var inactiveMarkers = [];
 
 var regulatedSpecies = ['낙지', '꽃게', '소라', '백합', '키조개', '주꾸미'];
 
@@ -327,8 +386,8 @@ function renderNationalMap(el) {
   if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
 
   withKakao(function () {
-    var center = new kakao.maps.LatLng(37.0, 126.35);
-    selectMap = new kakao.maps.Map(mapEl, { center: center, level: 11 });
+    var center = new kakao.maps.LatLng(37.0, 126.45);
+    selectMap = new kakao.maps.Map(mapEl, { center: center, level: 13 });
     Object.keys(regions).forEach(function (key) {
       var r = regions[key];
       addLabeledMarker(selectMap, r.center.lat, r.center.lng, r.label, false, function () {
