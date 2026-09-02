@@ -206,6 +206,7 @@ function renderRegionBar() {
     '<button class="pill-btn" id="change-region">지역 변경</button></div>';
   document.getElementById('change-region').addEventListener('click', function () {
     currentRegion = null;
+    currentTab = 'map';
     selectedDate = null;
     renderAll();
   });
@@ -221,10 +222,13 @@ function renderContent() {
     else renderRegionMap(el);
     return;
   }
-  if (!currentRegion) { renderRegionPrompt(el); return; }
-  if (currentTab === 'camp') renderCampTab(el);
-  if (currentTab === 'calendar') renderCalendarTab(el);
-  if (currentTab === 'videos') renderVideosTab(el);
+  if (currentTab === 'camp') {
+    if (!currentRegion) { renderRegionPrompt(el); return; }
+    renderCampTab(el);
+    return;
+  }
+  if (currentTab === 'calendar') { renderCalendarTab(el); return; }
+  if (currentTab === 'videos') { renderVideosTab(el); return; }
 }
 
 function renderRegionPrompt(el) {
@@ -319,12 +323,19 @@ function dateKey(d) { return calYear + '-' + (calMonth + 1) + '-' + d; }
 function logKey(dStr) { return currentRegion + '|' + dStr; }
 
 function renderCalendarTab(el) {
+  if (!currentRegion) currentRegion = Object.keys(regions)[0];
+  var chipsHtml = Object.keys(regions).map(function (key) {
+    var active = key === currentRegion;
+    return '<button class="pill-btn" data-region-chip="' + key + '" style="margin:0 6px 10px 0;' +
+      (active ? 'background:var(--tide);color:#fff;border-color:var(--tide);' : '') + '">' + regions[key].label + '</button>';
+  }).join('');
   var first = new Date(calYear, calMonth, 1);
   var startIdx = first.getDay();
   var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   var monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
-  var html = '<div class="cal-header">' +
+  var html = '<div style="margin-bottom:4px;">' + chipsHtml + '</div>' +
+    '<div class="cal-header">' +
     '<button id="prev-month" aria-label="이전 달">‹</button>' +
     '<span class="cal-title">' + calYear + '년 ' + monthNames[calMonth] + '</span>' +
     '<button id="next-month" aria-label="다음 달">›</button></div>';
@@ -350,6 +361,14 @@ function renderCalendarTab(el) {
   });
   document.getElementById('next-month').addEventListener('click', function () {
     calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendarTab(el);
+  });
+  Array.prototype.forEach.call(el.querySelectorAll('[data-region-chip]'), function (b) {
+    b.addEventListener('click', function () {
+      currentRegion = b.getAttribute('data-region-chip');
+      selectedDate = null;
+      renderRegionBar();
+      renderCalendarTab(el);
+    });
   });
   Array.prototype.forEach.call(el.querySelectorAll('[data-date]'), function (b) {
     b.addEventListener('click', function () { selectedDate = b.getAttribute('data-date'); renderCalendarTab(el); });
@@ -407,8 +426,7 @@ function renderDayDetail() {
    저장한 영상 탭
 ============================================================ */
 function renderVideosTab(el) {
-  var regionLabel = regions[currentRegion].label;
-  var list = savedVideos.filter(function (v) { return v.region === regionLabel; });
+  var list = savedVideos;
 
   var html = list.length === 0
     ? '<p class="no-log">저장된 영상이 없습니다.</p>'
@@ -421,6 +439,9 @@ function renderVideosTab(el) {
   html += '<div class="section-label">영상 추가</div>' +
     '<input class="field" id="vid-url" type="text" placeholder="유튜브 링크 붙여넣기">' +
     '<input class="field" id="vid-title" type="text" placeholder="제목">' +
+    '<select class="field" id="vid-region">' + Object.keys(regions).map(function (k) {
+      return '<option value="' + regions[k].label + '">' + regions[k].label + '</option>';
+    }).join('') + '</select>' +
     '<p class="error-text hidden" id="vid-error">링크와 제목을 입력하세요.</p>' +
     '<button class="btn" id="vid-save">＋ 영상 저장</button>';
 
@@ -428,10 +449,11 @@ function renderVideosTab(el) {
   document.getElementById('vid-save').addEventListener('click', function () {
     var url = document.getElementById('vid-url').value.trim();
     var title = document.getElementById('vid-title').value.trim();
+    var region = document.getElementById('vid-region').value;
     var err = document.getElementById('vid-error');
     if (!url || !title) { err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
-    savedVideos.push({ title: title, region: regionLabel, species: '-', url: url });
+    savedVideos.push({ title: title, region: region, species: '-', url: url });
     saveState('haerujil.videos', savedVideos);
     renderVideosTab(el);
   });
