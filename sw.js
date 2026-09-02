@@ -1,4 +1,4 @@
-const CACHE_NAME = 'haerujil-v1';
+const CACHE_NAME = 'haerujil-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -32,18 +32,14 @@ self.addEventListener('activate', function (event) {
 self.addEventListener('fetch', function (event) {
   const req = event.request;
   if (req.method !== 'GET') return;
-  // Let map/API calls always go to the network; only cache our own app shell.
   if (req.url.indexOf(self.location.origin) !== 0) return;
   event.respondWith(
-    caches.match(req).then(function (cached) {
-      if (cached) return cached;
-      return fetch(req).then(function (res) {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then(function (cache) { cache.put(req, copy); });
-        return res;
-      }).catch(function () {
-        return cached;
-      });
+    fetch(req).then(function (res) {
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then(function (cache) { cache.put(req, copy); });
+      return res;
+    }).catch(function () {
+      return caches.match(req);
     })
   );
 });
