@@ -43,11 +43,11 @@ var regions = {
       { name: '마시안', lat: 37.4529, lng: 126.3639, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
-      { name: '왕산가족오토캠핑장', note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
-      { name: '을왕리 솔트캠핑장', note: '차박 전용 구역·카라반 구역 분리, 주차 넉넉' }
+      { name: '왕산가족오토캠핑장', lat: 37.4485, lng: 126.3755, note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
+      { name: '을왕리 솔트캠핑장', lat: 37.4430, lng: 126.3690, note: '차박 전용 구역·카라반 구역 분리, 주차 넉넉' }
     ],
     campsInformal: [
-      { name: '을왕리 해변 노지 주차', note: '무료지만 만조 시 주차구역 침수 위험 — 물때 확인 후 높은 곳에 주차', caution: true }
+      { name: '을왕리 해변 노지 주차', lat: 37.4442, lng: 126.3705, note: '무료지만 만조 시 주차구역 침수 위험 — 물때 확인 후 높은 곳에 주차', caution: true }
     ]
   },
   yeongheung: {
@@ -58,11 +58,11 @@ var regions = {
       { name: '노가리해변', lat: 37.2278, lng: 126.4457, species: [{ name: '키조개', months: [4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '꽃게', months: [4,5,9,10] }] }
     ],
     campsFormal: [
-      { name: '십리포해수욕장 캠핑장', note: '정식 야영장, 유료' },
-      { name: '캠프노마드', note: '카라반·오토캠핑, 수영장 있음' }
+      { name: '십리포해수욕장 캠핑장', lat: 37.2426, lng: 126.4278, note: '정식 야영장, 유료' },
+      { name: '캠프노마드', lat: 37.2300, lng: 126.4400, note: '카라반·오토캠핑, 수영장 있음' }
     ],
     campsInformal: [
-      { name: '장경리해수욕장 노지', note: '예전엔 무료 노지캠핑 명소였으나 최근 단속 강화로 야영 금지구역 있음 — 방문 전 확인 필요', caution: true }
+      { name: '장경리해수욕장 노지', lat: 37.2334, lng: 126.4308, note: '예전엔 무료 노지캠핑 명소였으나 최근 단속 강화로 야영 금지구역 있음 — 방문 전 확인 필요', caution: true }
     ]
   },
   taean: {
@@ -74,12 +74,12 @@ var regions = {
       { name: '신두리', lat: 36.8300, lng: 126.1500, species: [{ name: '골뱅이', months: [3,4,5] }, { name: '동죽', months: [4,5,6,7] }, { name: '대맛', months: [4,5,6,7,8,9,10] }] }
     ],
     campsFormal: [
-      { name: '몽산포 오토캠핑장', note: '전기·샤워장 완비, 1박 약 5만원' },
-      { name: '마검포 아름뜰 캠핑장', note: '조용한 편, 해루질 포인트 인접' }
+      { name: '몽산포 오토캠핑장', lat: 36.6820, lng: 126.2957, note: '전기·샤워장 완비, 1박 약 5만원' },
+      { name: '마검포 아름뜰 캠핑장', lat: 36.6250, lng: 126.2850, note: '조용한 편, 해루질 포인트 인접' }
     ],
     campsInformal: [
-      { name: '마검포항 노지', note: '무료 노지 차박, 방파제 안쪽 잔잔한 해변에서 낚시·해루질 병행 가능', caution: false },
-      { name: '솔향기길 해안 차박지', note: '전기·수도 없음, 조용한 감성 차박지', caution: false }
+      { name: '마검포항 노지', lat: 36.6230, lng: 126.2820, note: '무료 노지 차박, 방파제 안쪽 잔잔한 해변에서 낚시·해루질 병행 가능', caution: false },
+      { name: '솔향기길 해안 차박지', lat: 36.7200, lng: 126.2200, note: '전기·수도 없음, 조용한 감성 차박지', caution: false }
     ]
   },
   ganghwa: {
@@ -92,10 +92,10 @@ var regions = {
       { name: '민머루해수욕장(석모도)', lat: 37.6250, lng: 126.2950, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
     ],
     campsFormal: [
-      { name: '동막해변 야영장', note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
+      { name: '동막해변 야영장', lat: 37.5980, lng: 126.3880, note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
     ],
     campsInformal: [
-      { name: '외포항 주변 노지', note: '석모도 여객선터미널 인근, 방문 전 주차·야영 가능 여부 확인 필요', caution: true }
+      { name: '외포항 주변 노지', lat: 37.6550, lng: 126.3350, note: '석모도 여객선터미널 인근, 방문 전 주차·야영 가능 여부 확인 필요', caution: true }
     ]
   },
   boryeong: {
@@ -106,10 +106,10 @@ var regions = {
       { name: '대천해수욕장', lat: 36.3180, lng: 126.5130, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
-      { name: '독산해수욕장 야영장·오토캠핑장', note: '소나무 방풍림, 정식 시설' }
+      { name: '독산해수욕장 야영장·오토캠핑장', lat: 36.3100, lng: 126.4850, note: '소나무 방풍림, 정식 시설' }
     ],
     campsInformal: [
-      { name: '무창포 인근 노지', note: '신비의 바닷길(석대도) 개방 시간에 맞춰 방문 — 물때 확인 필수', caution: true }
+      { name: '무창포 인근 노지', lat: 36.3250, lng: 126.4900, note: '신비의 바닷길(석대도) 개방 시간에 맞춰 방문 — 물때 확인 필수', caution: true }
     ]
   },
   jebu: {
@@ -120,7 +120,7 @@ var regions = {
     ],
     campsFormal: [],
     campsInformal: [
-      { name: '제부도 진입 전 주차장 인근', note: '바닷길 통행시간(물때)에 따라 입·출도 가능 여부가 달라짐 — 반드시 사전 확인', caution: true }
+      { name: '제부도 진입 전 주차장 인근', lat: 37.2000, lng: 126.6180, note: '바닷길 통행시간(물때)에 따라 입·출도 가능 여부가 달라짐 — 반드시 사전 확인', caution: true }
     ]
   },
   muui: {
@@ -129,7 +129,7 @@ var regions = {
       { name: '하나개해수욕장', lat: 37.4470, lng: 126.4190, species: [{ name: '동죽', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }, { name: '방게', months: [1,2,3,4,5,6,7,8,9,10,11,12] }, { name: '바지락', months: [3,4,5,6] }, { name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }] }
     ],
     campsFormal: [
-      { name: '하나개해수욕장 야영지', note: '취사 가능, 방갈로 있음' }
+      { name: '하나개해수욕장 야영지', lat: 37.4470, lng: 126.4190, note: '취사 가능, 방갈로 있음' }
     ],
     campsInformal: []
   },
@@ -141,7 +141,7 @@ var regions = {
     ],
     campsFormal: [],
     campsInformal: [
-      { name: '방아머리 인근 바다향기테마파크 노지캠핑지', note: '무료, 여러 대가 함께 캠핑 가능(떼캠 명소), 화장실 있음', caution: false }
+      { name: '방아머리 인근 바다향기테마파크 노지캠핑지', lat: 37.2600, lng: 126.5850, note: '무료, 여러 대가 함께 캠핑 가능(떼캠 명소), 화장실 있음', caution: false }
     ]
   }
 };
@@ -337,21 +337,29 @@ function weatherIcon(w) {
   return '☁️';
 }
 
-function fetchWeather(regionKey, dateStr) {
+var weatherRawCache = {};
+function getWeatherRaw(regionKey) {
   if (typeof fetch === 'undefined') return Promise.resolve(null);
   if (!WEATHER_API_KEY || WEATHER_API_KEY.indexOf('YOUR_') === 0) return Promise.resolve(null);
-  var grid = regionGrid(regionKey);
   var bt = latestBaseTime();
+  var cacheKey = regionKey + '|' + bt.date + '|' + bt.time;
+  if (weatherRawCache[cacheKey]) return weatherRawCache[cacheKey];
+  var grid = regionGrid(regionKey);
   var url = WEATHER_API_ENDPOINT + '?serviceKey=' + encodeURIComponent(WEATHER_API_KEY) +
     '&numOfRows=1000&pageNo=1&dataType=JSON&base_date=' + bt.date + '&base_time=' + bt.time +
     '&nx=' + grid.nx + '&ny=' + grid.ny;
-  return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (data) {
-      if (!data) return null;
-      console.log('날씨 API 응답(콘솔 확인용)', data);
-      return parseWeather(data, dateStr);
-    })
+  var p = fetch(url).then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) { if (data) console.log('날씨 API 응답(콘솔 확인용)', data); return data; })
     .catch(function () { return null; });
+  weatherRawCache[cacheKey] = p;
+  return p;
+}
+
+function fetchWeather(regionKey, dateStr) {
+  return getWeatherRaw(regionKey).then(function (data) {
+    if (!data) return null;
+    return parseWeather(data, dateStr);
+  });
 }
 
 /* ============================================================
@@ -566,7 +574,8 @@ function renderRegionMap(el) {
 ============================================================ */
 function renderCampTab(el) {
   var r = regions[currentRegion];
-  var html = '<div class="section-label">정식 캠핑장</div>';
+  var html = '<div class="point-map" id="camp-map"></div>' +
+    '<div class="section-label">정식 캠핑장</div>';
   html += r.campsFormal.map(function (c) {
     return '<div class="camp-card"><div class="camp-card-title">⛺ ' + c.name + '</div>' +
       '<div class="camp-card-note">' + c.note + '</div></div>';
@@ -578,6 +587,19 @@ function renderCampTab(el) {
       '<div class="camp-card-note">' + c.note + '</div></div>';
   }).join('');
   el.innerHTML = html;
+
+  var mapEl = document.getElementById('camp-map');
+  if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
+  withKakao(function () {
+    var center = new kakao.maps.LatLng(r.center.lat, r.center.lng);
+    var map = new kakao.maps.Map(mapEl, { center: center, level: r.level });
+    r.campsFormal.forEach(function (c) {
+      if (c.lat != null) addLabeledMarker(map, c.lat, c.lng, c.name, false, null);
+    });
+    r.campsInformal.forEach(function (c) {
+      if (c.lat != null) addLabeledMarker(map, c.lat, c.lng, c.name, true, null);
+    });
+  });
 }
 
 /* ============================================================
@@ -665,6 +687,24 @@ function renderCalendarTab(el) {
     b.addEventListener('click', function () { selectedDate = b.getAttribute('data-date'); renderCalendarTab(el); });
   });
   if (selectedDate) renderDayDetail();
+  decorateCalendarWeather(el);
+}
+
+function decorateCalendarWeather(el) {
+  getWeatherRaw(currentRegion).then(function (data) {
+    if (!data) return;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-date]'), function (btn) {
+      if (btn.querySelector('.d-weather')) return;
+      var dStr = btn.getAttribute('data-date');
+      var w = parseWeather(data, dStr);
+      if (!w) return;
+      var span = document.createElement('span');
+      span.className = 'd-weather';
+      span.style.fontSize = '10px';
+      span.textContent = weatherIcon(w);
+      btn.appendChild(span);
+    });
+  });
 }
 
 function renderDayDetail() {
@@ -687,9 +727,11 @@ function renderDayDetail() {
     '<div class="section-label">채집 기록</div>';
 
   if (logs.length === 0) html += '<p class="no-log">기록이 없습니다.</p>';
-  else html += logs.map(function (l) {
+  else html += logs.map(function (l, idx) {
     var amountText = (l.qty != null && l.qty !== '') ? (l.qty + (l.unit || '')) : (l.amount || '');
-    return '<div class="log-entry">' + l.species + ' · ' + amountText + (l.memo ? ' · ' + l.memo : '') + '</div>';
+    return '<div class="log-entry" style="display:flex;justify-content:space-between;align-items:center;">' +
+      '<span>' + l.species + ' · ' + amountText + (l.memo ? ' · ' + l.memo : '') + '</span>' +
+      '<button data-del-log="' + idx + '" aria-label="기록 삭제" style="background:none;border:none;color:var(--ink-soft);font-size:16px;padding:2px 8px;">✕</button></div>';
   }).join('');
 
   html += '<div class="form-row">' +
@@ -702,6 +744,16 @@ function renderDayDetail() {
     '<button class="btn" id="log-save">＋ 기록 추가</button></div>';
 
   el.innerHTML = html;
+
+  Array.prototype.forEach.call(el.querySelectorAll('[data-del-log]'), function (b) {
+    b.addEventListener('click', function () {
+      var idx = parseInt(b.getAttribute('data-del-log'), 10);
+      catchLog[key].splice(idx, 1);
+      if (catchLog[key].length === 0) delete catchLog[key];
+      saveState('haerujil.catchLog', catchLog);
+      renderCalendarTab(document.getElementById('content-area'));
+    });
+  });
 
   fetchWeather(currentRegion, selectedDate).then(function (w) {
     var line = document.getElementById('weather-line');
@@ -744,15 +796,17 @@ function renderVideosTab(el) {
 
   var html = list.length === 0
     ? '<p class="no-log">저장된 영상이 없습니다.</p>'
-    : list.map(function (v) {
+    : list.map(function (v, idx) {
         var vid = youtubeVideoId(v.url);
         var thumb = vid
           ? '<img src="https://img.youtube.com/vi/' + vid + '/mqdefault.jpg" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:10px;flex-shrink:0;">'
           : '<div class="video-thumb">▶</div>';
         var href = v.url ? v.url : '#';
-        return '<a class="video-card" href="' + href + '" target="_blank" rel="noopener">' + thumb + '<div class="video-info">' +
+        return '<div class="video-card" style="display:flex;align-items:center;gap:8px;">' +
+          '<a href="' + href + '" target="_blank" rel="noopener" style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;text-decoration:none;color:inherit;">' + thumb + '<div class="video-info">' +
           '<p class="video-title">' + v.title + '</p>' +
-          '<p class="video-meta">' + v.region + ' · ' + v.species + '</p></div></a>';
+          '<p class="video-meta">' + v.region + ' · ' + v.species + '</p></div></a>' +
+          '<button data-del-video="' + idx + '" aria-label="영상 삭제" style="background:none;border:none;color:var(--ink-soft);font-size:18px;padding:6px;flex-shrink:0;">✕</button></div>';
       }).join('');
 
   html += '<div class="section-label">영상 추가</div>' +
@@ -765,6 +819,14 @@ function renderVideosTab(el) {
     '<button class="btn" id="vid-save">＋ 영상 저장</button>';
 
   el.innerHTML = html;
+  Array.prototype.forEach.call(el.querySelectorAll('[data-del-video]'), function (b) {
+    b.addEventListener('click', function () {
+      var idx = parseInt(b.getAttribute('data-del-video'), 10);
+      savedVideos.splice(idx, 1);
+      saveState('haerujil.videos', savedVideos);
+      renderVideosTab(el);
+    });
+  });
   document.getElementById('vid-save').addEventListener('click', function () {
     var url = document.getElementById('vid-url').value.trim();
     var title = document.getElementById('vid-title').value.trim();
