@@ -37,10 +37,10 @@ var regions = {
   wangsan: {
     label: '왕산(영종도)', center: { lat: 37.4470, lng: 126.3700 }, level: 6,
     points: [
-      { name: '왕산해수욕장', lat: 37.4478, lng: 126.3762, species: ['바지락', '동죽', '낙지'] },
-      { name: '선녀바위', lat: 37.4448, lng: 126.3695, species: ['백합', '주꾸미', '소라'] },
-      { name: '을왕리', lat: 37.4438, lng: 126.3701, species: ['소라', '박하지'] },
-      { name: '마시안', lat: 37.4529, lng: 126.3639, species: ['바지락', '동죽'] }
+      { name: '왕산해수욕장', lat: 37.4478, lng: 126.3762, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '낙지', months: [9,10,11] }] },
+      { name: '선녀바위', lat: 37.4448, lng: 126.3695, species: [{ name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }, { name: '소라', months: [5,6,7,8,9] }] },
+      { name: '을왕리', lat: 37.4438, lng: 126.3701, species: [{ name: '소라', months: [5,6,7,8,9] }, { name: '박하지', months: [6,7,8] }] },
+      { name: '마시안', lat: 37.4529, lng: 126.3639, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
       { name: '왕산가족오토캠핑장', note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
@@ -53,9 +53,9 @@ var regions = {
   yeongheung: {
     label: '영흥도', center: { lat: 37.2350, lng: 126.4350 }, level: 7,
     points: [
-      { name: '십리포해수욕장', lat: 37.2426, lng: 126.4278, species: ['낙지', '소라', '박하지', '갯가재'] },
-      { name: '장경리해수욕장', lat: 37.2334, lng: 126.4308, species: ['바지락', '굴'] },
-      { name: '노가리해변', lat: 37.2278, lng: 126.4457, species: ['키조개', '소라', '골뱅이', '꽃게'] }
+      { name: '십리포해수욕장', lat: 37.2426, lng: 126.4278, species: [{ name: '낙지', months: [9,10,11] }, { name: '소라', months: [5,6,7,8,9] }, { name: '박하지', months: [6,7,8] }, { name: '갯가재', months: [6,7,8] }] },
+      { name: '장경리해수욕장', lat: 37.2334, lng: 126.4308, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '굴', months: [11,12,1,2] }] },
+      { name: '노가리해변', lat: 37.2278, lng: 126.4457, species: [{ name: '키조개', months: [4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '꽃게', months: [4,5,9,10] }] }
     ],
     campsFormal: [
       { name: '십리포해수욕장 캠핑장', note: '정식 야영장, 유료' },
@@ -68,10 +68,10 @@ var regions = {
   taean: {
     label: '태안', center: { lat: 36.6500, lng: 126.2800 }, level: 8,
     points: [
-      { name: '몽산포', lat: 36.6820, lng: 126.2957, species: ['바지락', '낙지', '개조개', '소라'] },
-      { name: '청포대', lat: 36.6650, lng: 126.2900, species: ['백합', '대맛', '맛조개'] },
-      { name: '방포해변', lat: 36.6100, lng: 126.2600, species: ['바지락', '소라', '맛조개'] },
-      { name: '신두리', lat: 36.8300, lng: 126.1500, species: ['골뱅이', '동죽', '대맛'] }
+      { name: '몽산포', lat: 36.6820, lng: 126.2957, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '낙지', months: [9,10,11] }, { name: '개조개', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }] },
+      { name: '청포대', lat: 36.6650, lng: 126.2900, species: [{ name: '백합', months: [7,8] }, { name: '대맛', months: [4,5,6,7,8,9,10] }, { name: '맛조개', months: [4,5,6,7,8,9] }] },
+      { name: '방포해변', lat: 36.6100, lng: 126.2600, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '맛조개', months: [4,5,6,7,8,9] }] },
+      { name: '신두리', lat: 36.8300, lng: 126.1500, species: [{ name: '골뱅이', months: [3,4,5] }, { name: '동죽', months: [4,5,6,7] }, { name: '대맛', months: [4,5,6,7,8,9,10] }] }
     ],
     campsFormal: [
       { name: '몽산포 오토캠핑장', note: '전기·샤워장 완비, 1박 약 5만원' },
@@ -85,11 +85,11 @@ var regions = {
   ganghwa: {
     label: '강화도', center: { lat: 37.6200, lng: 126.4000 }, level: 9,
     points: [
-      { name: '동막해변', lat: 37.5980, lng: 126.3880, species: ['바지락', '동죽', '칠게', '쌀무늬고둥'] },
-      { name: '동검도', lat: 37.5830, lng: 126.4550, species: ['낙지'] },
-      { name: '외포항', lat: 37.6550, lng: 126.3350, species: ['꽃게', '소라'] },
-      { name: '초지대교 인근', lat: 37.6280, lng: 126.5000, species: ['바지락', '동죽'] },
-      { name: '민머루해수욕장(석모도)', lat: 37.6250, lng: 126.2950, species: ['바지락', '고둥'] }
+      { name: '동막해변', lat: 37.5980, lng: 126.3880, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '칠게', months: [5,6,7,8,9] }, { name: '쌀무늬고둥', months: [4,5,6,7,8,9] }] },
+      { name: '동검도', lat: 37.5830, lng: 126.4550, species: [{ name: '낙지', months: [9,10,11] }] },
+      { name: '외포항', lat: 37.6550, lng: 126.3350, species: [{ name: '꽃게', months: [4,5,9,10] }, { name: '소라', months: [5,6,7,8,9] }] },
+      { name: '초지대교 인근', lat: 37.6280, lng: 126.5000, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
+      { name: '민머루해수욕장(석모도)', lat: 37.6250, lng: 126.2950, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
     ],
     campsFormal: [
       { name: '동막해변 야영장', note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
@@ -101,9 +101,9 @@ var regions = {
   boryeong: {
     label: '보령·서천', center: { lat: 36.3300, lng: 126.5000 }, level: 9,
     points: [
-      { name: '무창포해수욕장', lat: 36.3250, lng: 126.4900, species: ['굴', '바지락', '고둥', '골뱅이', '홍합'] },
-      { name: '독산해수욕장', lat: 36.3100, lng: 126.4850, species: ['바지락', '동죽'] },
-      { name: '대천해수욕장', lat: 36.3180, lng: 126.5130, species: ['바지락', '동죽'] }
+      { name: '무창포해수욕장', lat: 36.3250, lng: 126.4900, species: [{ name: '굴', months: [11,12,1,2] }, { name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '홍합', months: [3,4,5,6] }] },
+      { name: '독산해수욕장', lat: 36.3100, lng: 126.4850, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
+      { name: '대천해수욕장', lat: 36.3180, lng: 126.5130, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
       { name: '독산해수욕장 야영장·오토캠핑장', note: '소나무 방풍림, 정식 시설' }
@@ -115,8 +115,8 @@ var regions = {
   jebu: {
     label: '제부도·궁평항', center: { lat: 37.2000, lng: 126.6500 }, level: 9,
     points: [
-      { name: '제부도해변', lat: 37.1980, lng: 126.6250, species: ['바지락', '쏙(쏙새우)', '낙지', '갯지렁이'] },
-      { name: '궁평항', lat: 37.2020, lng: 126.6800, species: ['바지락', '동죽', '꽃게'] }
+      { name: '제부도해변', lat: 37.1980, lng: 126.6250, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '쏙(쏙새우)', months: [4,5,6] }, { name: '낙지', months: [9,10,11] }, { name: '갯지렁이', months: [4,5,6,7,8,9] }] },
+      { name: '궁평항', lat: 37.2020, lng: 126.6800, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '꽃게', months: [4,5,9,10] }] }
     ],
     campsFormal: [],
     campsInformal: [
@@ -126,7 +126,7 @@ var regions = {
   muui: {
     label: '무의도', center: { lat: 37.4470, lng: 126.4190 }, level: 9,
     points: [
-      { name: '하나개해수욕장', lat: 37.4470, lng: 126.4190, species: ['동죽', '소라', '방게', '바지락', '백합', '주꾸미'] }
+      { name: '하나개해수욕장', lat: 37.4470, lng: 126.4190, species: [{ name: '동죽', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }, { name: '방게', months: [1,2,3,4,5,6,7,8,9,10,11,12] }, { name: '바지락', months: [3,4,5,6] }, { name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }] }
     ],
     campsFormal: [
       { name: '하나개해수욕장 야영지', note: '취사 가능, 방갈로 있음' }
@@ -136,8 +136,8 @@ var regions = {
   daebu: {
     label: '대부도', center: { lat: 37.2450, lng: 126.5900 }, level: 9,
     points: [
-      { name: '방아머리해수욕장', lat: 37.2570, lng: 126.5820, species: ['바지락', '동죽', '게', '고둥', '꽃게', '망둥어'] },
-      { name: '탄도항', lat: 37.2210, lng: 126.5590, species: ['바지락', '동죽'] }
+      { name: '방아머리해수욕장', lat: 37.2570, lng: 126.5820, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '게', months: [5,6,7,8,9] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '꽃게', months: [4,5,9,10] }, { name: '망둥어', months: [6,7,8,9,10] }] },
+      { name: '탄도항', lat: 37.2210, lng: 126.5590, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [],
     campsInformal: [
@@ -240,6 +240,7 @@ function tideInfo(day) {
 }
 
 function fetchRealTide(regionKey, dateStr) {
+  if (typeof fetch === 'undefined') return Promise.resolve(null);
   if (!TIDE_API_ENDPOINT || TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
     return Promise.resolve(null);
   }
@@ -249,6 +250,107 @@ function fetchRealTide(regionKey, dateStr) {
     '&ObsCode=' + obsCode + '&Date=' + dateStr.replace(/-/g, '') + '&ResultType=json';
   return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
     .then(function (data) { if (data) console.log('물때 API 응답(콘솔 확인용)', data); return data; })
+    .catch(function () { return null; });
+}
+
+/* ============================================================
+   날씨 (기상청 단기예보) — 오늘부터 최대 2~3일치만 제공됩니다.
+   공공데이터포털 계정이 같으면 물때 API와 같은 인증키를 그대로 쓸 수
+   있는 경우가 많아 TIDE_API_KEY를 재사용했어요. 안 되면 기상청 단기예보
+   조회서비스를 별도로 활용신청한 뒤 발급받은 키로 WEATHER_API_KEY 값만
+   바꿔주세요.
+============================================================ */
+var WEATHER_API_KEY = TIDE_API_KEY;
+var WEATHER_API_ENDPOINT = 'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst';
+var gridCache = {};
+
+function latLngToGrid(lat, lng) {
+  var RE = 6371.00877, GRID = 5.0, SLAT1 = 30.0, SLAT2 = 60.0, OLON = 126.0, OLAT = 38.0, XO = 43, YO = 136;
+  var DEGRAD = Math.PI / 180.0;
+  var re = RE / GRID;
+  var slat1 = SLAT1 * DEGRAD, slat2 = SLAT2 * DEGRAD, olon = OLON * DEGRAD, olat = OLAT * DEGRAD;
+  var sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+  sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
+  var sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+  sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
+  var ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+  ro = re * sf / Math.pow(ro, sn);
+  var ra = Math.tan(Math.PI * 0.25 + lat * DEGRAD * 0.5);
+  ra = re * sf / Math.pow(ra, sn);
+  var theta = lng * DEGRAD - olon;
+  if (theta > Math.PI) theta -= 2.0 * Math.PI;
+  if (theta < -Math.PI) theta += 2.0 * Math.PI;
+  theta *= sn;
+  var x = Math.floor(ra * Math.sin(theta) + XO + 0.5);
+  var y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
+  return { nx: x, ny: y };
+}
+
+function regionGrid(regionKey) {
+  if (!gridCache[regionKey]) {
+    var c = regions[regionKey].center;
+    gridCache[regionKey] = latLngToGrid(c.lat, c.lng);
+  }
+  return gridCache[regionKey];
+}
+
+function latestBaseTime() {
+  var times = ['0200', '0500', '0800', '1100', '1400', '1700', '2000', '2300'];
+  var now = new Date();
+  var hm = (now.getHours() < 10 ? '0' : '') + now.getHours() + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+  var chosen = null, baseDate = now;
+  for (var i = 0; i < times.length; i++) { if (hm >= times[i]) chosen = times[i]; }
+  if (!chosen) { chosen = times[times.length - 1]; baseDate = new Date(now.getTime() - 24 * 3600 * 1000); }
+  var y = baseDate.getFullYear(), m = baseDate.getMonth() + 1, d = baseDate.getDate();
+  return { date: '' + y + (m < 10 ? '0' : '') + m + (d < 10 ? '0' : '') + d, time: chosen };
+}
+
+function parseWeather(data, targetDateStr) {
+  try {
+    var items = data.response.body.items.item;
+    var parts = targetDateStr.split('-');
+    var ymd = parts[0] + (parts[1].length < 2 ? '0' + parts[1] : parts[1]) + (parts[2].length < 2 ? '0' + parts[2] : parts[2]);
+    var sky = [], pty = [], wsd = [], pop = [];
+    items.forEach(function (it) {
+      if (it.fcstDate !== ymd) return;
+      if (it.category === 'SKY') sky.push(Number(it.fcstValue));
+      if (it.category === 'PTY') pty.push(Number(it.fcstValue));
+      if (it.category === 'WSD') wsd.push(Number(it.fcstValue));
+      if (it.category === 'POP') pop.push(Number(it.fcstValue));
+    });
+    if (!sky.length && !pty.length) return null;
+    return {
+      pty: pty.length ? Math.max.apply(null, pty) : 0,
+      sky: sky.length ? sky[Math.floor(sky.length / 2)] : 1,
+      wsd: wsd.length ? Math.max.apply(null, wsd) : null,
+      pop: pop.length ? Math.max.apply(null, pop) : null
+    };
+  } catch (e) { return null; }
+}
+
+function weatherIcon(w) {
+  if (w.pty === 1 || w.pty === 4) return '🌧️';
+  if (w.pty === 2) return '🌨️';
+  if (w.pty === 3) return '❄️';
+  if (w.sky === 1) return '☀️';
+  if (w.sky === 3) return '⛅';
+  return '☁️';
+}
+
+function fetchWeather(regionKey, dateStr) {
+  if (typeof fetch === 'undefined') return Promise.resolve(null);
+  if (!WEATHER_API_KEY || WEATHER_API_KEY.indexOf('YOUR_') === 0) return Promise.resolve(null);
+  var grid = regionGrid(regionKey);
+  var bt = latestBaseTime();
+  var url = WEATHER_API_ENDPOINT + '?serviceKey=' + encodeURIComponent(WEATHER_API_KEY) +
+    '&numOfRows=1000&pageNo=1&dataType=JSON&base_date=' + bt.date + '&base_time=' + bt.time +
+    '&nx=' + grid.nx + '&ny=' + grid.ny;
+  return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      if (!data) return null;
+      console.log('날씨 API 응답(콘솔 확인용)', data);
+      return parseWeather(data, dateStr);
+    })
     .catch(function () { return null; });
 }
 
@@ -367,10 +469,31 @@ function renderRegionPrompt(el) {
 /* ============================================================
    해루질 지도 탭
 ============================================================ */
-function speciesBadge(sp) {
-  var reg = regulatedSpecies.indexOf(sp) >= 0;
-  if (reg) return '<button class="badge reg" data-reg-info="' + sp + '">' + sp + ' ⓘ</button>';
-  return '<span class="badge">' + sp + '</span>';
+function monthLabel(months) {
+  var sorted = months.slice().sort(function (a, b) { return a - b; });
+  var runs = [];
+  var start = sorted[0], prev = sorted[0];
+  for (var i = 1; i < sorted.length; i++) {
+    if (sorted[i] === prev + 1) { prev = sorted[i]; continue; }
+    runs.push([start, prev]);
+    start = sorted[i]; prev = sorted[i];
+  }
+  runs.push([start, prev]);
+  return runs.map(function (r) { return r[0] === r[1] ? r[0] + '월' : r[0] + '~' + r[1] + '월'; }).join(', ');
+}
+
+function isInSeason(months, m) { return months.indexOf(m) >= 0; }
+
+function speciesRow(sp, nowMonth) {
+  var inSeason = isInSeason(sp.months, nowMonth);
+  var reg = regulatedSpecies.indexOf(sp.name) >= 0;
+  var nameHtml = reg
+    ? '<button data-reg-info="' + sp.name + '" style="border:none;background:none;padding:0;font:inherit;cursor:pointer;color:' + (inSeason ? 'var(--ink)' : 'var(--ink-soft)') + ';font-weight:' + (inSeason ? '700' : '400') + ';">' + sp.name + ' ⓘ</button>'
+    : '<span style="color:' + (inSeason ? 'var(--ink)' : 'var(--ink-soft)') + ';font-weight:' + (inSeason ? '700' : '400') + ';">' + sp.name + '</span>';
+  var rightHtml = '<span style="font-size:12px;color:' + (inSeason ? 'var(--tide)' : 'var(--ink-soft)') + ';">' +
+    (inSeason ? '지금 제철 · ' : '') + monthLabel(sp.months) + '</span>';
+  return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;">' +
+    nameHtml + rightHtml + '</div>';
 }
 
 function attachRegInfoHandlers(el) {
@@ -409,11 +532,18 @@ function renderNationalMap(el) {
 
 function renderRegionMap(el) {
   var r = regions[currentRegion];
+  var nowMonth = today.getMonth() + 1;
   el.innerHTML =
     '<div class="point-map" id="region-map"></div>' +
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">' + nowMonth + '월 기준으로 지금 제철인 어종이 위로 정렬돼요.</p>' +
     r.points.map(function (p) {
-      return '<div class="point-card"><div class="point-card-title">📍 ' + p.name + '</div><div>' +
-        p.species.map(speciesBadge).join('') + '</div></div>';
+      var sorted = p.species.slice().sort(function (a, b) {
+        var aIn = isInSeason(a.months, nowMonth) ? 0 : 1;
+        var bIn = isInSeason(b.months, nowMonth) ? 0 : 1;
+        return aIn - bIn;
+      });
+      return '<div class="point-card"><div class="point-card-title">📍 ' + p.name + '</div>' +
+        sorted.map(function (sp) { return speciesRow(sp, nowMonth); }).join('') + '</div>';
     }).join('') +
     '<p id="reg-detail" class="camp-card-note" style="min-height:18px;"></p>';
 
@@ -545,7 +675,7 @@ function renderDayDetail() {
   var t = tideInfo(d);
   var r = regions[currentRegion];
   var allSpecies = [];
-  r.points.forEach(function (p) { p.species.forEach(function (s) { if (allSpecies.indexOf(s) < 0) allSpecies.push(s); }); });
+  r.points.forEach(function (p) { p.species.forEach(function (s) { if (allSpecies.indexOf(s.name) < 0) allSpecies.push(s.name); }); });
 
   var key = logKey(selectedDate);
   var logs = catchLog[key] || [];
@@ -553,6 +683,7 @@ function renderDayDetail() {
   var html = '<div class="day-detail">' +
     '<div class="day-detail-title">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
     '<div class="day-detail-sun">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + '</div>' +
+    '<p id="weather-line" style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">날씨 확인 중…</p>' +
     '<div class="section-label">채집 기록</div>';
 
   if (logs.length === 0) html += '<p class="no-log">기록이 없습니다.</p>';
@@ -571,6 +702,19 @@ function renderDayDetail() {
     '<button class="btn" id="log-save">＋ 기록 추가</button></div>';
 
   el.innerHTML = html;
+
+  fetchWeather(currentRegion, selectedDate).then(function (w) {
+    var line = document.getElementById('weather-line');
+    if (!line) return;
+    if (!w) {
+      line.textContent = '날씨 정보는 오늘부터 2~3일 뒤까지만 나와요 (더 먼 날짜는 표시되지 않아요).';
+      return;
+    }
+    var windWarn = (w.wsd != null && w.wsd >= 8) ? ' · ⚠ 바람 강함(초속 ' + w.wsd + 'm)' : (w.wsd != null ? ' · 바람 초속 ' + w.wsd + 'm' : '');
+    var popText = (w.pop != null) ? ' · 강수확률 ' + w.pop + '%' : '';
+    line.textContent = weatherIcon(w) + ' ' + '날씨' + popText + windWarn;
+  });
+
   document.getElementById('log-save').addEventListener('click', function () {
     var sp = document.getElementById('log-species').value;
     var qty = document.getElementById('log-qty').value.trim();
