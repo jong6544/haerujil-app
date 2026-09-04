@@ -185,7 +185,7 @@ var customPoints = loadState('haerujil.customPoints', {});
 /* ============================================================
    앱 상태
 ============================================================ */
-var currentRegion = null;
+var tabRegion = { map: null, camp: null, calendar: null };
 var currentTab = 'map';
 var today = new Date();
 var calYear = today.getFullYear();
@@ -454,18 +454,21 @@ function renderMoreTab(el) {
 ============================================================ */
 function renderRegionBar() {
   var el = document.getElementById('region-bar');
-  if (!currentRegion) {
+  if (currentTab !== 'map' && currentTab !== 'camp') {
     el.innerHTML = '';
     return;
   }
-  var r = regions[currentRegion];
+  var key = tabRegion[currentTab];
+  if (!key) {
+    el.innerHTML = '';
+    return;
+  }
+  var r = regions[key];
   el.innerHTML = '<div class="region-topbar">' +
     '<span class="region-name">' + r.label + '</span>' +
     '<button class="pill-btn" id="change-region">지역 변경</button></div>';
   document.getElementById('change-region').addEventListener('click', function () {
-    currentRegion = null;
-    currentTab = 'map';
-    selectedDate = null;
+    tabRegion[currentTab] = null;
     renderAll();
   });
 }
@@ -476,12 +479,12 @@ function renderRegionBar() {
 function renderContent() {
   var el = document.getElementById('content-area');
   if (currentTab === 'map') {
-    if (!currentRegion) renderNationalMap(el);
+    if (!tabRegion.map) renderNationalMap(el);
     else renderRegionMap(el);
     return;
   }
   if (currentTab === 'camp') {
-    if (!currentRegion) { renderRegionPrompt(el); return; }
+    if (!tabRegion.camp) { renderRegionPrompt(el); return; }
     renderCampTab(el);
     return;
   }
@@ -497,7 +500,7 @@ function renderRegionPrompt(el) {
     }).join('');
   Array.prototype.forEach.call(el.querySelectorAll('[data-pick]'), function (b) {
     b.addEventListener('click', function () {
-      currentRegion = b.getAttribute('data-pick');
+      tabRegion[currentTab] = b.getAttribute('data-pick');
       renderAll();
     });
   });
@@ -557,7 +560,7 @@ function renderNationalMap(el) {
     Object.keys(regions).forEach(function (key) {
       var r = regions[key];
       addLabeledMarker(selectMap, r.center.lat, r.center.lng, r.label, false, function () {
-        currentRegion = key;
+        tabRegion.map = key;
         renderAll();
       });
     });
@@ -568,7 +571,7 @@ function renderNationalMap(el) {
 }
 
 function myPointsHtml() {
-  var mine = customPoints[currentRegion] || [];
+  var mine = customPoints[tabRegion.map] || [];
   var html = '<div class="section-label">내가 추가한 포인트</div>';
   if (mine.length === 0) html += '<p class="no-log">아직 추가한 포인트가 없어요.</p>';
   else html += mine.map(function (p, idx) {
@@ -589,7 +592,7 @@ function attachMyPointsHandlers(el) {
     b.addEventListener('click', function (e) {
       e.stopPropagation();
       var idx = parseInt(b.getAttribute('data-del-mypoint'), 10);
-      customPoints[currentRegion].splice(idx, 1);
+      customPoints[tabRegion.map].splice(idx, 1);
       saveState('haerujil.customPoints', customPoints);
       renderRegionMap(el);
     });
@@ -605,8 +608,8 @@ function attachMyPointsHandlers(el) {
     err.classList.add('hidden');
     saveBtn.textContent = '위치 확인 중…';
     navigator.geolocation.getCurrentPosition(function (pos) {
-      if (!customPoints[currentRegion]) customPoints[currentRegion] = [];
-      customPoints[currentRegion].push({ name: name, memo: memo, lat: pos.coords.latitude, lng: pos.coords.longitude });
+      if (!customPoints[tabRegion.map]) customPoints[tabRegion.map] = [];
+      customPoints[tabRegion.map].push({ name: name, memo: memo, lat: pos.coords.latitude, lng: pos.coords.longitude });
       saveState('haerujil.customPoints', customPoints);
       renderRegionMap(el);
     }, function () {
@@ -618,7 +621,7 @@ function attachMyPointsHandlers(el) {
 }
 
 function renderRegionMap(el) {
-  var r = regions[currentRegion];
+  var r = regions[tabRegion.map];
   var nowMonth = today.getMonth() + 1;
   el.innerHTML =
     '<div class="point-map" id="region-map"></div>' +
@@ -648,7 +651,7 @@ function renderRegionMap(el) {
     r.points.forEach(function (p) {
       addLabeledMarker(regionMap, p.lat, p.lng, p.name, false, null);
     });
-    (customPoints[currentRegion] || []).forEach(function (p) {
+    (customPoints[tabRegion.map] || []).forEach(function (p) {
       addCustomMarker(regionMap, p.lat, p.lng, p.name);
     });
   });
@@ -658,7 +661,7 @@ function renderRegionMap(el) {
    캠핑지도 탭
 ============================================================ */
 function renderCampTab(el) {
-  var r = regions[currentRegion];
+  var r = regions[tabRegion.camp];
   var html = '<div class="point-map" id="camp-map"></div>' +
     '<div class="section-label">정식 캠핑장</div>';
   html += r.campsFormal.map(function (c) {
@@ -694,13 +697,13 @@ function renderCampTab(el) {
    캘린더 탭
 ============================================================ */
 function dateKey(d) { return calYear + '-' + (calMonth + 1) + '-' + d; }
-function logKey(dStr) { return currentRegion + '|' + dStr; }
+function logKey(dStr) { return tabRegion.calendar + '|' + dStr; }
 
 function monthlySummaryHtml() {
   var totals = {};
   Object.keys(catchLog).forEach(function (key) {
-    if (key.indexOf(currentRegion + '|') !== 0) return;
-    var dStr = key.slice(currentRegion.length + 1);
+    if (key.indexOf(tabRegion.calendar + '|') !== 0) return;
+    var dStr = key.slice(tabRegion.calendar.length + 1);
     var dp = dStr.split('-');
     if (parseInt(dp[0], 10) !== calYear || parseInt(dp[1], 10) !== (calMonth + 1)) return;
     catchLog[key].forEach(function (l) {
@@ -722,9 +725,9 @@ function monthlySummaryHtml() {
 }
 
 function renderCalendarTab(el) {
-  if (!currentRegion) currentRegion = Object.keys(regions)[0];
+  if (!tabRegion.calendar) tabRegion.calendar = Object.keys(regions)[0];
   var chipsHtml = Object.keys(regions).map(function (key) {
-    var active = key === currentRegion;
+    var active = key === tabRegion.calendar;
     return '<button class="pill-btn" data-region-chip="' + key + '" style="margin:0 6px 10px 0;' +
       (active ? 'background:var(--tide);color:#fff;border-color:var(--tide);' : '') + '">' + regions[key].label + '</button>';
   }).join('');
@@ -739,6 +742,7 @@ function renderCalendarTab(el) {
     '<span class="cal-title">' + calYear + '년 ' + monthNames[calMonth] + '</span>' +
     '<button id="next-month" aria-label="다음 달">›</button></div>';
 
+  html += '<p style="font-size:11px;color:var(--ink-soft);margin:0 0 6px;">칸 안의 위 시각은 일출, 아래 시각은 일몰이에요.</p>';
   html += '<div class="cal-grid">';
   ['일', '월', '화', '수', '목', '금', '토'].forEach(function (d) { html += '<div class="cal-dow">' + d + '</div>'; });
   for (var i = 0; i < startIdx; i++) html += '<div></div>';
@@ -749,8 +753,11 @@ function renderCalendarTab(el) {
     var sel = selectedDate === dStr;
     html += '<button class="cal-day' + (sel ? ' selected' : '') + '" data-date="' + dStr + '" ' +
       'style="background:' + (t.cls === 'sari' ? '#FAECE7' : t.cls === 'jogeum' ? '#E6F1FB' : '#F1EFE8') + '">' +
-      '<span class="d-num">' + d + '</span><span class="d-row"><span class="d-tide">' + t.label + '</span>' +
-      (hasLog ? '<span class="d-dot"></span>' : '') + '</span></button>';
+      '<span class="d-num">' + d + '</span>' +
+      '<span class="d-row"><span class="d-tide">' + t.label + '</span>' + (hasLog ? '<span class="d-dot"></span>' : '') + '</span>' +
+      '<span class="d-sun d-sunrise">' + t.sunrise + '</span>' +
+      '<span class="d-sun d-sunset">' + t.sunset + '</span>' +
+      '</button>';
   }
   html += '</div>';
   html += monthlySummaryHtml();
@@ -765,7 +772,7 @@ function renderCalendarTab(el) {
   });
   Array.prototype.forEach.call(el.querySelectorAll('[data-region-chip]'), function (b) {
     b.addEventListener('click', function () {
-      currentRegion = b.getAttribute('data-region-chip');
+      tabRegion.calendar = b.getAttribute('data-region-chip');
       selectedDate = null;
       renderRegionBar();
       renderCalendarTab(el);
@@ -779,7 +786,7 @@ function renderCalendarTab(el) {
 }
 
 function decorateCalendarWeather(el) {
-  getWeatherRaw(currentRegion).then(function (data) {
+  getWeatherRaw(tabRegion.calendar).then(function (data) {
     if (!data) return;
     Array.prototype.forEach.call(el.querySelectorAll('[data-date]'), function (btn) {
       if (btn.querySelector('.d-weather')) return;
@@ -802,7 +809,7 @@ function renderDayDetail() {
   var parts = selectedDate.split('-');
   var d = parseInt(parts[2], 10);
   var t = tideInfo(d);
-  var r = regions[currentRegion];
+  var r = regions[tabRegion.calendar];
   var allSpecies = [];
   r.points.forEach(function (p) { p.species.forEach(function (s) { if (allSpecies.indexOf(s.name) < 0) allSpecies.push(s.name); }); });
 
@@ -844,7 +851,7 @@ function renderDayDetail() {
     });
   });
 
-  fetchWeather(currentRegion, selectedDate).then(function (w) {
+  fetchWeather(tabRegion.calendar, selectedDate).then(function (w) {
     var line = document.getElementById('weather-line');
     if (!line) return;
     if (!w) {
@@ -960,7 +967,7 @@ function renderTabbar() {
 function initApp() {
   var app = document.getElementById('app');
   app.innerHTML =
-    '<div class="app-title">해루질</div>' +
+    '<div class="app-header"><div class="app-title">해루질</div></div>' +
     '<div id="region-bar"></div>' +
     '<div class="screen-area" id="content-area"></div>' +
     '<div class="tabbar" id="tabbar"></div>';
