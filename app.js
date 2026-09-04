@@ -24,7 +24,7 @@ window.addEventListener('error', function (e) {
 ============================================================ */
 var TIDE_API_KEY = 'IRsSSSvAIRJ8yzg/0FRHuB046Llj2SkN/PJxXUE4QFIuZgMJA8f30kbyruOLZVBJwxRIlejEIDht2efEcwCQzA==';
 var YOUTUBE_API_KEY = 'AIzaSyC4T_z8ReHdhj1GySug8DC1n8085uLYL-U';
-var TIDE_API_ENDPOINT = 'https://www.khoa.go.kr/api/oceangrid/tideObsPre/search.do';
+var TIDE_API_ENDPOINT = 'https://apis.data.go.kr/1192136/surveyTideLevel/GetSurveyTideLevelApiService';
 var OBS_CODES = {
   wangsan: 'DT_0044',    // 영종대교 — 왕산에서 가장 가까운 관측소지만 정확히 같은 위치는 아니에요
   yeongheung: 'DT_0043', // 영흥도 — 정확히 일치
@@ -304,22 +304,22 @@ function fetchRealTide(regionKey, dateStr) {
   }
   var obsCode = OBS_CODES[regionKey];
   if (!obsCode || obsCode.indexOf('YOUR_') === 0) return Promise.resolve(null);
-  var url = TIDE_API_ENDPOINT + '?ServiceKey=' + encodeURIComponent(TIDE_API_KEY) +
-    '&ObsCode=' + obsCode + '&Date=' + ymdFromDateStr(dateStr) + '&ResultType=json';
+  var url = TIDE_API_ENDPOINT + '?serviceKey=' + encodeURIComponent(TIDE_API_KEY) +
+    '&type=json&obsCode=' + obsCode + '&reqDate=' + ymdFromDateStr(dateStr) +
+    '&min=5&numOfRows=300&pageNo=1';
   return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
     .then(function (data) { if (data) console.log('물때 API 응답(콘솔 확인용)', data); return data; })
     .catch(function () { return null; });
 }
 
-/* 응답 안에서 만조/간조로 보이는 극점(꼭짓점) 시각을 대략 찾아냅니다.
-   실제 응답 필드명(record_time/tide_level)을 100% 확신할 수 없어서,
-   못 찾으면 그냥 null을 돌려주고 화면은 기존 추정치를 그대로 보여줍니다. */
+/* Swagger 명세로 확인된 실제 응답 구조: body.items.item[] 안에
+   obsrvnDt(관측일시), tdlvHgt(조위값) 필드가 들어있습니다. */
 function extractTideExtremes(data) {
   try {
-    var series = data.result.data;
+    var series = data.body.items.item;
     if (!series || series.length < 3) return null;
     var points = series.map(function (p) {
-      return { time: p.record_time, level: Number(p.tide_level) };
+      return { time: p.obsrvnDt, level: Number(p.tdlvHgt) };
     }).filter(function (p) { return p.time && !isNaN(p.level); });
     if (points.length < 3) return null;
     var extremes = [];
