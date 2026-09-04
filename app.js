@@ -180,6 +180,7 @@ function saveState(key, value) {
 var catchLog = loadState('haerujil.catchLog', {});
 var savedVideos = loadState('haerujil.videos', null);
 if (!savedVideos) { savedVideos = defaultVideos.slice(); saveState('haerujil.videos', savedVideos); }
+var customPoints = loadState('haerujil.customPoints', {});
 
 /* ============================================================
    앱 상태
@@ -192,6 +193,23 @@ var calMonth = today.getMonth();
 var selectedDate = null;
 var selectMap = null;
 var regionMap = null;
+var campMap = null;
+
+function focusMap(map, mapElId, lat, lng) {
+  if (!map) return;
+  map.setLevel(4);
+  map.setCenter(new kakao.maps.LatLng(lat, lng));
+  var mapEl = document.getElementById(mapElId);
+  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function attachFocusHandlers(el, getMap, mapElId) {
+  Array.prototype.forEach.call(el.querySelectorAll('[data-lat]'), function (card) {
+    card.addEventListener('click', function () {
+      focusMap(getMap(), mapElId, parseFloat(card.getAttribute('data-lat')), parseFloat(card.getAttribute('data-lng')));
+    });
+  });
+}
 var kakaoOk = (typeof kakao !== 'undefined');
 
 /* ============================================================
@@ -214,6 +232,17 @@ function addLabeledMarker(map, lat, lng, label, muted, onClick) {
   var overlay = new kakao.maps.CustomOverlay({ position: pos, content: el, yAnchor: 1 });
   overlay.setMap(map);
   if (onClick) el.addEventListener('click', onClick);
+}
+
+function addCustomMarker(map, lat, lng, label) {
+  var pos = new kakao.maps.LatLng(lat, lng);
+  new kakao.maps.Marker({ position: pos, map: map });
+  var el = document.createElement('div');
+  el.textContent = '⭐ ' + label;
+  el.style.cssText = 'background:var(--rust);border:none;color:#fff;font-size:12px;padding:2px 8px;' +
+    'border-radius:10px;white-space:nowrap;transform:translate(-50%,-38px);';
+  var overlay = new kakao.maps.CustomOverlay({ position: pos, content: el, yAnchor: 1 });
+  overlay.setMap(map);
 }
 
 function mapFallback(container, msg) {
@@ -496,7 +525,7 @@ function speciesRow(sp, nowMonth) {
   var inSeason = isInSeason(sp.months, nowMonth);
   var reg = regulatedSpecies.indexOf(sp.name) >= 0;
   var nameHtml = reg
-    ? '<button data-reg-info="' + sp.name + '" style="border:none;background:none;padding:0;font:inherit;cursor:pointer;color:' + (inSeason ? 'var(--ink)' : 'var(--ink-soft)') + ';font-weight:' + (inSeason ? '700' : '400') + ';">' + sp.name + ' ⓘ</button>'
+    ? '<button data-reg-info="' + sp.name + '" style="border:none;background:none;padding:6px 0;margin:-6px 0;font:inherit;cursor:pointer;color:' + (inSeason ? 'var(--ink)' : 'var(--ink-soft)') + ';font-weight:' + (inSeason ? '700' : '400') + ';">' + sp.name + ' ⓘ</button>'
     : '<span style="color:' + (inSeason ? 'var(--ink)' : 'var(--ink-soft)') + ';font-weight:' + (inSeason ? '700' : '400') + ';">' + sp.name + '</span>';
   var rightHtml = '<span style="font-size:12px;color:' + (inSeason ? 'var(--tide)' : 'var(--ink-soft)') + ';">' +
     (inSeason ? '지금 제철 · ' : '') + monthLabel(sp.months) + '</span>';
@@ -538,6 +567,56 @@ function renderNationalMap(el) {
   });
 }
 
+function myPointsHtml() {
+  var mine = customPoints[currentRegion] || [];
+  var html = '<div class="section-label">내가 추가한 포인트</div>';
+  if (mine.length === 0) html += '<p class="no-log">아직 추가한 포인트가 없어요.</p>';
+  else html += mine.map(function (p, idx) {
+    return '<div class="camp-card" data-lat="' + p.lat + '" data-lng="' + p.lng + '" style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;">' +
+      '<div><div class="camp-card-title">⭐ ' + p.name + '</div>' +
+      (p.memo ? '<div class="camp-card-note">' + p.memo + '</div>' : '') + '</div>' +
+      '<button data-del-mypoint="' + idx + '" aria-label="포인트 삭제" style="background:none;border:none;color:var(--ink-soft);font-size:16px;padding:4px 6px;flex-shrink:0;">✕</button></div>';
+  }).join('');
+  html += '<input class="field" id="mypoint-name" type="text" placeholder="이름 (예: 뒷개 갯벌)">' +
+    '<input class="field" id="mypoint-memo" type="text" placeholder="메모 (선택)">' +
+    '<p class="error-text hidden" id="mypoint-error">이름을 입력하고, 위치 접근을 허용해주세요.</p>' +
+    '<button class="btn" id="mypoint-save">📍 현재 위치로 내 포인트 추가</button>';
+  return html;
+}
+
+function attachMyPointsHandlers(el) {
+  Array.prototype.forEach.call(el.querySelectorAll('[data-del-mypoint]'), function (b) {
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var idx = parseInt(b.getAttribute('data-del-mypoint'), 10);
+      customPoints[currentRegion].splice(idx, 1);
+      saveState('haerujil.customPoints', customPoints);
+      renderRegionMap(el);
+    });
+  });
+  var saveBtn = document.getElementById('mypoint-save');
+  if (!saveBtn) return;
+  saveBtn.addEventListener('click', function () {
+    var name = document.getElementById('mypoint-name').value.trim();
+    var memo = document.getElementById('mypoint-memo').value.trim();
+    var err = document.getElementById('mypoint-error');
+    if (!name) { err.textContent = '이름을 입력해주세요.'; err.classList.remove('hidden'); return; }
+    if (!navigator.geolocation) { err.textContent = '이 브라우저에서는 위치 확인을 지원하지 않아요.'; err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    saveBtn.textContent = '위치 확인 중…';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      if (!customPoints[currentRegion]) customPoints[currentRegion] = [];
+      customPoints[currentRegion].push({ name: name, memo: memo, lat: pos.coords.latitude, lng: pos.coords.longitude });
+      saveState('haerujil.customPoints', customPoints);
+      renderRegionMap(el);
+    }, function () {
+      err.textContent = '위치를 가져오지 못했어요. 위치 권한을 허용했는지 확인해주세요.';
+      err.classList.remove('hidden');
+      saveBtn.textContent = '📍 현재 위치로 내 포인트 추가';
+    });
+  });
+}
+
 function renderRegionMap(el) {
   var r = regions[currentRegion];
   var nowMonth = today.getMonth() + 1;
@@ -550,12 +629,15 @@ function renderRegionMap(el) {
         var bIn = isInSeason(b.months, nowMonth) ? 0 : 1;
         return aIn - bIn;
       });
-      return '<div class="point-card"><div class="point-card-title">📍 ' + p.name + '</div>' +
+      return '<div class="point-card" data-lat="' + p.lat + '" data-lng="' + p.lng + '" style="cursor:pointer;"><div class="point-card-title">📍 ' + p.name + '</div>' +
         sorted.map(function (sp) { return speciesRow(sp, nowMonth); }).join('') + '</div>';
     }).join('') +
-    '<p id="reg-detail" class="camp-card-note" style="min-height:18px;"></p>';
+    '<p id="reg-detail" class="camp-card-note" style="min-height:18px;"></p>' +
+    myPointsHtml();
 
   attachRegInfoHandlers(el);
+  attachMyPointsHandlers(el);
+  attachFocusHandlers(el, function () { return regionMap; }, 'region-map');
 
   var mapEl = document.getElementById('region-map');
   if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
@@ -565,6 +647,9 @@ function renderRegionMap(el) {
     regionMap = new kakao.maps.Map(mapEl, { center: center, level: r.level });
     r.points.forEach(function (p) {
       addLabeledMarker(regionMap, p.lat, p.lng, p.name, false, null);
+    });
+    (customPoints[currentRegion] || []).forEach(function (p) {
+      addCustomMarker(regionMap, p.lat, p.lng, p.name);
     });
   });
 }
@@ -577,27 +662,30 @@ function renderCampTab(el) {
   var html = '<div class="point-map" id="camp-map"></div>' +
     '<div class="section-label">정식 캠핑장</div>';
   html += r.campsFormal.map(function (c) {
-    return '<div class="camp-card"><div class="camp-card-title">⛺ ' + c.name + '</div>' +
+    var geo = c.lat != null ? ' data-lat="' + c.lat + '" data-lng="' + c.lng + '" style="cursor:pointer;"' : '';
+    return '<div class="camp-card"' + geo + '><div class="camp-card-title">⛺ ' + c.name + '</div>' +
       '<div class="camp-card-note">' + c.note + '</div></div>';
   }).join('');
   html += '<div class="section-label">차박·노지 스팟</div>';
   html += r.campsInformal.map(function (c) {
     var warn = c.caution ? '<span class="badge reg" style="cursor:default;">주의</span>' : '';
-    return '<div class="camp-card"><div class="camp-card-title">🚐 ' + c.name + warn + '</div>' +
+    var geo = c.lat != null ? ' data-lat="' + c.lat + '" data-lng="' + c.lng + '" style="cursor:pointer;"' : '';
+    return '<div class="camp-card"' + geo + '><div class="camp-card-title">🚐 ' + c.name + warn + '</div>' +
       '<div class="camp-card-note">' + c.note + '</div></div>';
   }).join('');
   el.innerHTML = html;
+  attachFocusHandlers(el, function () { return campMap; }, 'camp-map');
 
   var mapEl = document.getElementById('camp-map');
   if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
   withKakao(function () {
     var center = new kakao.maps.LatLng(r.center.lat, r.center.lng);
-    var map = new kakao.maps.Map(mapEl, { center: center, level: r.level });
+    campMap = new kakao.maps.Map(mapEl, { center: center, level: r.level });
     r.campsFormal.forEach(function (c) {
-      if (c.lat != null) addLabeledMarker(map, c.lat, c.lng, c.name, false, null);
+      if (c.lat != null) addLabeledMarker(campMap, c.lat, c.lng, c.name, false, null);
     });
     r.campsInformal.forEach(function (c) {
-      if (c.lat != null) addLabeledMarker(map, c.lat, c.lng, c.name, true, null);
+      if (c.lat != null) addLabeledMarker(campMap, c.lat, c.lng, c.name, true, null);
     });
   });
 }
@@ -661,8 +749,8 @@ function renderCalendarTab(el) {
     var sel = selectedDate === dStr;
     html += '<button class="cal-day' + (sel ? ' selected' : '') + '" data-date="' + dStr + '" ' +
       'style="background:' + (t.cls === 'sari' ? '#FAECE7' : t.cls === 'jogeum' ? '#E6F1FB' : '#F1EFE8') + '">' +
-      '<span class="d-num">' + d + '</span><span class="d-tide">' + t.label + '</span>' +
-      (hasLog ? '<span class="d-dot"></span>' : '') + '</button>';
+      '<span class="d-num">' + d + '</span><span class="d-row"><span class="d-tide">' + t.label + '</span>' +
+      (hasLog ? '<span class="d-dot"></span>' : '') + '</span></button>';
   }
   html += '</div>';
   html += monthlySummaryHtml();
@@ -695,14 +783,15 @@ function decorateCalendarWeather(el) {
     if (!data) return;
     Array.prototype.forEach.call(el.querySelectorAll('[data-date]'), function (btn) {
       if (btn.querySelector('.d-weather')) return;
+      var row = btn.querySelector('.d-row');
+      if (!row) return;
       var dStr = btn.getAttribute('data-date');
       var w = parseWeather(data, dStr);
       if (!w) return;
       var span = document.createElement('span');
       span.className = 'd-weather';
-      span.style.fontSize = '10px';
       span.textContent = weatherIcon(w);
-      btn.appendChild(span);
+      row.appendChild(span);
     });
   });
 }
@@ -723,7 +812,7 @@ function renderDayDetail() {
   var html = '<div class="day-detail">' +
     '<div class="day-detail-title">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
     '<div class="day-detail-sun">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + '</div>' +
-    '<p id="weather-line" style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">날씨 확인 중…</p>' +
+    '<p id="weather-line" class="weather-badge">날씨 확인 중…</p>' +
     '<div class="section-label">채집 기록</div>';
 
   if (logs.length === 0) html += '<p class="no-log">기록이 없습니다.</p>';

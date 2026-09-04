@@ -185,25 +185,37 @@ button.badge { cursor: pointer; }
 .cal-dow { text-align: center; font-size: 12px; color: var(--ink-soft); padding-bottom: 4px; }
 
 .cal-day {
-  min-height: 58px;
+  min-height: 62px;
   border-radius: 8px;
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   font-size: 13px;
+  padding: 4px 2px;
 }
 
 .cal-day .d-num { font-size: 13px; }
+.cal-day .d-row { display: flex; align-items: center; gap: 3px; }
 .cal-day .d-tide { font-size: 10px; }
 .cal-day .d-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rust); }
+.cal-day .d-weather { font-size: 11px; line-height: 1; }
 .cal-day.selected { border: 2px solid var(--tide); }
 
 .day-detail { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 16px; }
 .day-detail-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.day-detail-sun { font-size: 14px; color: var(--ink-soft); margin-bottom: 14px; }
+.day-detail-sun { font-size: 14px; color: var(--ink-soft); margin-bottom: 10px; }
+.weather-badge {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--tide-dark);
+  background: var(--sand);
+  border-radius: 20px;
+  padding: 5px 12px;
+  margin: 0 0 14px;
+}
 
 .log-entry { font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .log-entry:last-child { border-bottom: none; }
@@ -236,8 +248,10 @@ button.badge { cursor: pointer; }
   align-items: center;
   gap: 3px;
   color: var(--ink-soft);
-  font-size: 11px;
-  padding: 4px 6px;
+  font-size: 10.5px;
+  padding: 6px 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .tab-btn.active { color: var(--tide); }
