@@ -43,10 +43,10 @@ var regions = {
   wangsan: {
     label: '왕산(영종도)', center: { lat: 37.4470, lng: 126.3700 }, level: 6,
     points: [
-      { name: '왕산해수욕장', lat: 37.4478, lng: 126.3762, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '낙지', months: [9,10,11] }] },
-      { name: '선녀바위', lat: 37.4448, lng: 126.3695, species: [{ name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }, { name: '소라', months: [5,6,7,8,9] }] },
-      { name: '을왕리', lat: 37.4438, lng: 126.3701, species: [{ name: '소라', months: [5,6,7,8,9] }, { name: '박하지', months: [6,7,8] }] },
-      { name: '마시안', lat: 37.4529, lng: 126.3639, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
+      { name: '왕산해수욕장', lat: 37.4559, lng: 126.3684, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '낙지', months: [9,10,11] }] },
+      { name: '선녀바위', lat: 37.4397, lng: 126.3782, species: [{ name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }, { name: '소라', months: [5,6,7,8,9] }] },
+      { name: '을왕리', lat: 37.4477, lng: 126.3725, species: [{ name: '소라', months: [5,6,7,8,9] }, { name: '박하지', months: [6,7,8] }] },
+      { name: '마시안', lat: 37.4318, lng: 126.4166, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
       { name: '왕산가족오토캠핑장', lat: 37.4485, lng: 126.3755, note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
@@ -59,28 +59,28 @@ var regions = {
   yeongheung: {
     label: '영흥도', center: { lat: 37.2350, lng: 126.4350 }, level: 7,
     points: [
-      { name: '십리포해수욕장', lat: 37.2426, lng: 126.4278, species: [{ name: '낙지', months: [9,10,11] }, { name: '소라', months: [5,6,7,8,9] }, { name: '박하지', months: [6,7,8] }, { name: '갯가재', months: [6,7,8] }] },
-      { name: '장경리해수욕장', lat: 37.2334, lng: 126.4308, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '굴', months: [11,12,1,2] }] },
-      { name: '노가리해변', lat: 37.2278, lng: 126.4457, species: [{ name: '키조개', months: [4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '꽃게', months: [4,5,9,10] }] }
+      { name: '십리포해수욕장', lat: 37.2814, lng: 126.4859, species: [{ name: '낙지', months: [9,10,11] }, { name: '소라', months: [5,6,7,8,9] }, { name: '박하지', months: [6,7,8] }, { name: '갯가재', months: [6,7,8] }] },
+      { name: '장경리해수욕장', lat: 37.2722, lng: 126.4494, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '굴', months: [11,12,1,2] }] },
+      { name: '노가리해변', lat: 37.239, lng: 126.471, species: [{ name: '키조개', months: [4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '꽃게', months: [4,5,9,10] }] }
     ],
     campsFormal: [
-      { name: '십리포해수욕장 캠핑장', lat: 37.2426, lng: 126.4278, note: '정식 야영장, 유료' },
+      { name: '십리포해수욕장 캠핑장', lat: 37.2814, lng: 126.4859, note: '정식 야영장, 유료' },
       { name: '캠프노마드', lat: 37.2300, lng: 126.4400, note: '카라반·오토캠핑, 수영장 있음' }
     ],
     campsInformal: [
-      { name: '장경리해수욕장 노지', lat: 37.2334, lng: 126.4308, note: '예전엔 무료 노지캠핑 명소였으나 최근 단속 강화로 야영 금지구역 있음 — 방문 전 확인 필요', caution: true }
+      { name: '장경리해수욕장 노지', lat: 37.2722, lng: 126.4494, note: '예전엔 무료 노지캠핑 명소였으나 최근 단속 강화로 야영 금지구역 있음 — 방문 전 확인 필요', caution: true }
     ]
   },
   taean: {
     label: '태안', center: { lat: 36.6500, lng: 126.2800 }, level: 8,
     points: [
-      { name: '몽산포', lat: 36.6820, lng: 126.2957, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '낙지', months: [9,10,11] }, { name: '개조개', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }] },
-      { name: '청포대', lat: 36.6650, lng: 126.2900, species: [{ name: '백합', months: [7,8] }, { name: '대맛', months: [4,5,6,7,8,9,10] }, { name: '맛조개', months: [4,5,6,7,8,9] }] },
-      { name: '방포해변', lat: 36.6100, lng: 126.2600, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '맛조개', months: [4,5,6,7,8,9] }] },
-      { name: '신두리', lat: 36.8300, lng: 126.1500, species: [{ name: '골뱅이', months: [3,4,5] }, { name: '동죽', months: [4,5,6,7] }, { name: '대맛', months: [4,5,6,7,8,9,10] }] }
+      { name: '몽산포', lat: 36.6700, lng: 126.2868, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '낙지', months: [9,10,11] }, { name: '개조개', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }] },
+      { name: '청포대', lat: 36.6399, lng: 126.3015, species: [{ name: '백합', months: [7,8] }, { name: '대맛', months: [4,5,6,7,8,9,10] }, { name: '맛조개', months: [4,5,6,7,8,9] }] },
+      { name: '방포해변', lat: 36.5094, lng: 126.3327, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '맛조개', months: [4,5,6,7,8,9] }] },
+      { name: '신두리', lat: 36.8374, lng: 126.1848, species: [{ name: '골뱅이', months: [3,4,5] }, { name: '동죽', months: [4,5,6,7] }, { name: '대맛', months: [4,5,6,7,8,9,10] }] }
     ],
     campsFormal: [
-      { name: '몽산포 오토캠핑장', lat: 36.6820, lng: 126.2957, note: '전기·샤워장 완비, 1박 약 5만원' },
+      { name: '몽산포 오토캠핑장', lat: 36.6700, lng: 126.2868, note: '전기·샤워장 완비, 1박 약 5만원' },
       { name: '마검포 아름뜰 캠핑장', lat: 36.6250, lng: 126.2850, note: '조용한 편, 해루질 포인트 인접' }
     ],
     campsInformal: [
@@ -91,38 +91,38 @@ var regions = {
   ganghwa: {
     label: '강화도', center: { lat: 37.6200, lng: 126.4000 }, level: 9,
     points: [
-      { name: '동막해변', lat: 37.5980, lng: 126.3880, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '칠게', months: [5,6,7,8,9] }, { name: '쌀무늬고둥', months: [4,5,6,7,8,9] }] },
-      { name: '동검도', lat: 37.5830, lng: 126.4550, species: [{ name: '낙지', months: [9,10,11] }] },
-      { name: '외포항', lat: 37.6550, lng: 126.3350, species: [{ name: '꽃게', months: [4,5,9,10] }, { name: '소라', months: [5,6,7,8,9] }] },
+      { name: '동막해변', lat: 37.5926, lng: 126.4582, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '칠게', months: [5,6,7,8,9] }, { name: '쌀무늬고둥', months: [4,5,6,7,8,9] }] },
+      { name: '동검도', lat: 37.5880, lng: 126.5150, species: [{ name: '낙지', months: [9,10,11] }] },
+      { name: '외포항', lat: 37.7055, lng: 126.3816, species: [{ name: '꽃게', months: [4,5,9,10] }, { name: '소라', months: [5,6,7,8,9] }] },
       { name: '초지대교 인근', lat: 37.6280, lng: 126.5000, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
       { name: '민머루해수욕장(석모도)', lat: 37.6250, lng: 126.2950, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
     ],
     campsFormal: [
-      { name: '동막해변 야영장', lat: 37.5980, lng: 126.3880, note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
+      { name: '동막해변 야영장', lat: 37.5926, lng: 126.4582, note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
     ],
     campsInformal: [
-      { name: '외포항 주변 노지', lat: 37.6550, lng: 126.3350, note: '석모도 여객선터미널 인근, 방문 전 주차·야영 가능 여부 확인 필요', caution: true }
+      { name: '외포항 주변 노지', lat: 37.7055, lng: 126.3816, note: '석모도 여객선터미널 인근, 방문 전 주차·야영 가능 여부 확인 필요', caution: true }
     ]
   },
   boryeong: {
     label: '보령·서천', center: { lat: 36.3300, lng: 126.5000 }, level: 9,
     points: [
-      { name: '무창포해수욕장', lat: 36.3250, lng: 126.4900, species: [{ name: '굴', months: [11,12,1,2] }, { name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '홍합', months: [3,4,5,6] }] },
-      { name: '독산해수욕장', lat: 36.3100, lng: 126.4850, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
+      { name: '무창포해수욕장', lat: 36.2445, lng: 126.5366, species: [{ name: '굴', months: [11,12,1,2] }, { name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '홍합', months: [3,4,5,6] }] },
+      { name: '독산해수욕장', lat: 36.2225, lng: 126.5309, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
       { name: '대천해수욕장', lat: 36.3180, lng: 126.5130, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
-      { name: '독산해수욕장 야영장·오토캠핑장', lat: 36.3100, lng: 126.4850, note: '소나무 방풍림, 정식 시설' }
+      { name: '독산해수욕장 야영장·오토캠핑장', lat: 36.2225, lng: 126.5309, note: '소나무 방풍림, 정식 시설' }
     ],
     campsInformal: [
-      { name: '무창포 인근 노지', lat: 36.3250, lng: 126.4900, note: '신비의 바닷길(석대도) 개방 시간에 맞춰 방문 — 물때 확인 필수', caution: true }
+      { name: '무창포 인근 노지', lat: 36.2445, lng: 126.5366, note: '신비의 바닷길(석대도) 개방 시간에 맞춰 방문 — 물때 확인 필수', caution: true }
     ]
   },
   jebu: {
     label: '제부도·궁평항', center: { lat: 37.2000, lng: 126.6500 }, level: 9,
     points: [
-      { name: '제부도해변', lat: 37.1980, lng: 126.6250, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '쏙(쏙새우)', months: [4,5,6] }, { name: '낙지', months: [9,10,11] }, { name: '갯지렁이', months: [4,5,6,7,8,9] }] },
-      { name: '궁평항', lat: 37.2020, lng: 126.6800, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '꽃게', months: [4,5,9,10] }] }
+      { name: '제부도해변', lat: 37.1655, lng: 126.6173, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '쏙(쏙새우)', months: [4,5,6] }, { name: '낙지', months: [9,10,11] }, { name: '갯지렁이', months: [4,5,6,7,8,9] }] },
+      { name: '궁평항', lat: 37.1155, lng: 126.6773, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '꽃게', months: [4,5,9,10] }] }
     ],
     campsFormal: [],
     campsInformal: [
@@ -130,19 +130,19 @@ var regions = {
     ]
   },
   muui: {
-    label: '무의도', center: { lat: 37.4470, lng: 126.4190 }, level: 9,
+    label: '무의도', center: { lat: 37.3846, lng: 126.4093 }, level: 9,
     points: [
-      { name: '하나개해수욕장', lat: 37.4470, lng: 126.4190, species: [{ name: '동죽', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }, { name: '방게', months: [1,2,3,4,5,6,7,8,9,10,11,12] }, { name: '바지락', months: [3,4,5,6] }, { name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }] }
+      { name: '하나개해수욕장', lat: 37.3846, lng: 126.4093, species: [{ name: '동죽', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }, { name: '방게', months: [1,2,3,4,5,6,7,8,9,10,11,12] }, { name: '바지락', months: [3,4,5,6] }, { name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }] }
     ],
     campsFormal: [
-      { name: '하나개해수욕장 야영지', lat: 37.4470, lng: 126.4190, note: '취사 가능, 방갈로 있음' }
+      { name: '하나개해수욕장 야영지', lat: 37.3846, lng: 126.4093, note: '취사 가능, 방갈로 있음' }
     ],
     campsInformal: []
   },
   daebu: {
     label: '대부도', center: { lat: 37.2450, lng: 126.5900 }, level: 9,
     points: [
-      { name: '방아머리해수욕장', lat: 37.2570, lng: 126.5820, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '게', months: [5,6,7,8,9] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '꽃게', months: [4,5,9,10] }, { name: '망둥어', months: [6,7,8,9,10] }] },
+      { name: '방아머리해수욕장', lat: 37.2892, lng: 126.5765, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '게', months: [5,6,7,8,9] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '꽃게', months: [4,5,9,10] }, { name: '망둥어', months: [6,7,8,9,10] }] },
       { name: '탄도항', lat: 37.2210, lng: 126.5590, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [],
@@ -991,14 +991,21 @@ function renderDayDetail() {
 
   fetchRealTide(tabRegion.calendar, selectedDate).then(function (data) {
     var line = document.getElementById('tide-line');
-    if (!line || !data) return;
+    if (!line) return;
+    line.classList.remove('hidden');
+    if (!data) {
+      line.textContent = '🌊 실제 물때 데이터를 가져오지 못했어요 (네트워크 또는 서버 문제일 수 있어요).';
+      return;
+    }
     var extremes = extractTideExtremes(data);
-    if (!extremes) return;
+    if (!extremes) {
+      line.textContent = '🌊 응답은 받았지만 만조·간조 시각을 찾지 못했어요.';
+      return;
+    }
     var text = extremes.map(function (e) {
       return (e.type === 'high' ? '만조 ' : '간조 ') + formatHm(e.time);
     }).join(' · ');
     line.textContent = '🌊 ' + text;
-    line.classList.remove('hidden');
   });
 
   fetchWeather(tabRegion.calendar, selectedDate).then(function (w) {
