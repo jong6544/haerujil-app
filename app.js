@@ -221,9 +221,27 @@ var kakaoOk = (typeof kakao !== 'undefined');
 /* ============================================================
    카카오맵 헬퍼
 ============================================================ */
-function withKakao(callback) {
-  if (!kakaoOk) return;
-  kakao.maps.load(callback);
+function withKakao(callback, mapEl) {
+  if (!kakaoOk) {
+    if (mapEl) {
+      mapFallback(mapEl, window.kakaoScriptFailed
+        ? '카카오맵을 불러오지 못했어요. 오늘 사용량을 다 썼거나 키에 문제가 있을 수 있어요.'
+        : '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.');
+    }
+    return;
+  }
+  var settled = false;
+  var timer = setTimeout(function () {
+    if (settled) return;
+    settled = true;
+    if (mapEl) mapFallback(mapEl, '지도 응답이 없어요. 오늘 카카오맵 사용량을 다 썼을 수 있어요 — 내일 다시 시도해주세요.');
+  }, 6000);
+  kakao.maps.load(function () {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    callback();
+  });
 }
 
 function addLabeledMarker(map, lat, lng, label, muted, onClick) {
@@ -328,23 +346,29 @@ function formatHm(recordTime) {
 ============================================================ */
 var ytCache = {};
 function fetchYouTubeSearch(query) {
-  if (typeof fetch === 'undefined') return Promise.resolve([]);
-  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.indexOf('YOUR_') === 0) return Promise.resolve([]);
+  if (typeof fetch === 'undefined') return Promise.resolve({ results: [], error: null });
+  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.indexOf('YOUR_') === 0) return Promise.resolve({ results: [], error: null });
   if (ytCache[query]) return ytCache[query];
   var url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=' +
     encodeURIComponent(query) + '&key=' + YOUTUBE_API_KEY;
-  var p = fetch(url).then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (data) {
-      if (!data || !data.items) return [];
-      return data.items.map(function (it) {
-        return {
-          videoId: it.id.videoId,
-          title: it.snippet.title,
-          thumb: it.snippet.thumbnails.medium.url
-        };
-      });
-    })
-    .catch(function () { return []; });
+  var p = fetch(url).then(function (res) {
+    return res.json().catch(function () { return null; }).then(function (body) {
+      return { ok: res.ok, status: res.status, body: body };
+    });
+  }).then(function (wrapped) {
+    if (wrapped.ok && wrapped.body && wrapped.body.items) {
+      return {
+        results: wrapped.body.items.map(function (it) {
+          return { videoId: it.id.videoId, title: it.snippet.title, thumb: it.snippet.thumbnails.medium.url };
+        }),
+        error: null
+      };
+    }
+    var reason = null;
+    try { reason = wrapped.body.error.errors[0].reason; } catch (e) {}
+    var errorType = (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') ? 'quota' : 'other';
+    return { results: [], error: errorType };
+  }).catch(function () { return { results: [], error: 'network' }; });
   ytCache[query] = p;
   return p;
 }
@@ -619,8 +643,6 @@ function renderNationalMap(el) {
     '<p class="map-hint">점을 탭하면 그 지역으로 들어갑니다. 회색 점은 아직 정보가 없는 지역이에요.</p>';
 
   var mapEl = document.getElementById('select-map');
-  if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
-
   withKakao(function () {
     var center = new kakao.maps.LatLng(37.0, 126.45);
     selectMap = new kakao.maps.Map(mapEl, { center: center, level: 13 });
@@ -634,7 +656,7 @@ function renderNationalMap(el) {
     inactiveMarkers.forEach(function (m) {
       addLabeledMarker(selectMap, m.lat, m.lng, m.label, true, null);
     });
-  });
+  }, mapEl);
 }
 
 function myPointsHtml() {
@@ -713,8 +735,6 @@ function renderRegionMap(el) {
   loadRelatedVideos(el, r.label);
 
   var mapEl = document.getElementById('region-map');
-  if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
-
   withKakao(function () {
     var center = new kakao.maps.LatLng(r.center.lat, r.center.lng);
     regionMap = new kakao.maps.Map(mapEl, { center: center, level: r.level });
@@ -724,15 +744,24 @@ function renderRegionMap(el) {
     (customPoints[tabRegion.map] || []).forEach(function (p) {
       addCustomMarker(regionMap, p.lat, p.lng, p.name);
     });
-  });
+  }, mapEl);
 }
 
 function loadRelatedVideos(el, regionLabel) {
-  fetchYouTubeSearch(regionLabel + ' 해루질').then(function (results) {
+  fetchYouTubeSearch(regionLabel + ' 해루질').then(function (res) {
     var box = el.querySelector('#yt-results');
     if (!box) return;
+    if (res.error === 'quota') {
+      box.innerHTML = '<p class="no-log">오늘 유튜브 검색 할당량을 다 썼어요. 내일 다시 시도해주세요.</p>';
+      return;
+    }
+    if (res.error) {
+      box.innerHTML = '<p class="no-log">영상을 불러오지 못했어요. index.html·app.js의 유튜브 키를 확인해주세요.</p>';
+      return;
+    }
+    var results = res.results;
     if (!results.length) {
-      box.innerHTML = '<p class="no-log">영상을 찾지 못했어요. index.html·app.js의 유튜브 키를 확인해주세요.</p>';
+      box.innerHTML = '<p class="no-log">관련 영상을 찾지 못했어요.</p>';
       return;
     }
     box.innerHTML = results.map(function (v, idx) {
@@ -789,7 +818,6 @@ function renderCampTab(el) {
   attachFocusHandlers(el, function () { return campMap; }, 'camp-map');
 
   var mapEl = document.getElementById('camp-map');
-  if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
   withKakao(function () {
     var center = new kakao.maps.LatLng(r.center.lat, r.center.lng);
     campMap = new kakao.maps.Map(mapEl, { center: center, level: r.level });
@@ -799,7 +827,7 @@ function renderCampTab(el) {
     r.campsInformal.forEach(function (c) {
       if (c.lat != null) addLabeledMarker(campMap, c.lat, c.lng, c.name, true, null);
     });
-  });
+  }, mapEl);
 }
 
 /* ============================================================
