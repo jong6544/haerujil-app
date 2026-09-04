@@ -297,6 +297,57 @@ function ymdFromDateStr(dateStr) {
   return parts[0] + (parts[1].length < 2 ? '0' + parts[1] : parts[1]) + (parts[2].length < 2 ? '0' + parts[2] : parts[2]);
 }
 
+/* ============================================================
+   정확한 일출·일몰·월출·월몰 (한국천문연구원 출몰시각 정보)
+   지역명 기반 API라 우리 8개 지역이 속한 시·군 이름으로 추정해서
+   넣었어요. 응답에 지역을 못 찾겠다는 에러가 뜨면 이름을 바꿔야 해요.
+============================================================ */
+var ASTRO_API_KEY = TIDE_API_KEY;
+var ASTRO_API_ENDPOINT = 'https://apis.data.go.kr/B090041/openapi/service/RiseSetInfoService/getAreaRiseSetInfo';
+var REGION_LOCATION_NAMES = {
+  wangsan: '인천', yeongheung: '인천', taean: '태안', ganghwa: '강화',
+  boryeong: '보령', jebu: '화성', muui: '인천', daebu: '안산'
+};
+var astroCache = {};
+function fetchSunMoon(regionKey, dateStr) {
+  if (typeof fetch === 'undefined') return Promise.resolve(null);
+  if (!ASTRO_API_KEY || ASTRO_API_KEY.indexOf('YOUR_') === 0) return Promise.resolve(null);
+  var loc = REGION_LOCATION_NAMES[regionKey];
+  if (!loc) return Promise.resolve(null);
+  var cacheKey = regionKey + '|' + dateStr;
+  if (astroCache[cacheKey]) return astroCache[cacheKey];
+  var url = ASTRO_API_ENDPOINT + '?serviceKey=' + encodeURIComponent(ASTRO_API_KEY) +
+    '&locdate=' + ymdFromDateStr(dateStr) + '&location=' + encodeURIComponent(loc);
+  var p = fetch(url).then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) { if (data) console.log('일출일몰 API 응답(콘솔 확인용)', data); return data; })
+    .catch(function () { return null; });
+  astroCache[cacheKey] = p;
+  return p;
+}
+
+function formatTimeField(raw) {
+  if (!raw) return null;
+  var s = String(raw);
+  if (s.length < 4) return null;
+  return s.slice(0, 2) + ':' + s.slice(2, 4);
+}
+
+function parseSunMoon(data) {
+  try {
+    var item = (data.body && data.body.items && data.body.items.item) ||
+      (data.items && data.items.item) || null;
+    if (Array.isArray(item)) item = item[0];
+    if (!item) return null;
+    var sunrise = formatTimeField(item.sunrise);
+    var sunset = formatTimeField(item.sunset);
+    var moonrise = formatTimeField(item.moonrise);
+    var moonset = formatTimeField(item.moonset);
+    if (!sunrise || !sunset) return null;
+    return { sunrise: sunrise, sunset: sunset, moonrise: moonrise, moonset: moonset };
+  } catch (e) { return null; }
+}
+
+var tideCache = {};
 function fetchRealTide(regionKey, dateStr) {
   if (typeof fetch === 'undefined') return Promise.resolve(null);
   if (!TIDE_API_ENDPOINT || TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
@@ -304,12 +355,16 @@ function fetchRealTide(regionKey, dateStr) {
   }
   var obsCode = OBS_CODES[regionKey];
   if (!obsCode || obsCode.indexOf('YOUR_') === 0) return Promise.resolve(null);
+  var cacheKey = regionKey + '|' + dateStr;
+  if (tideCache[cacheKey]) return tideCache[cacheKey];
   var url = TIDE_API_ENDPOINT + '?serviceKey=' + encodeURIComponent(TIDE_API_KEY) +
     '&type=json&obsCode=' + obsCode + '&reqDate=' + ymdFromDateStr(dateStr) +
     '&min=5&numOfRows=300&pageNo=1';
-  return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
+  var p = fetch(url).then(function (res) { return res.ok ? res.json() : null; })
     .then(function (data) { if (data) console.log('물때 API 응답(콘솔 확인용)', data); return data; })
     .catch(function () { return null; });
+  tideCache[cacheKey] = p;
+  return p;
 }
 
 /* Swagger 명세로 확인된 실제 응답 구조: body.items.item[] 안에
@@ -920,6 +975,25 @@ function renderCalendarTab(el) {
   });
   if (selectedDate) renderDayDetail();
   decorateCalendarWeather(el);
+  decorateCalendarTide(el);
+}
+
+function decorateCalendarTide(el) {
+  var buttons = Array.prototype.slice.call(el.querySelectorAll('[data-date]'));
+  var chain = Promise.resolve();
+  buttons.forEach(function (btn) {
+    chain = chain.then(function () {
+      return fetchRealTide(tabRegion.calendar, btn.getAttribute('data-date')).then(function (data) {
+        if (!data) return;
+        var extremes = extractTideExtremes(data);
+        if (!extremes) return;
+        var low = extremes.filter(function (e) { return e.type === 'low'; })[0];
+        if (!low) return;
+        var label = btn.querySelector('.d-tide');
+        if (label) label.textContent = '↓' + formatHm(low.time);
+      });
+    });
+  });
 }
 
 function decorateCalendarWeather(el) {
@@ -955,7 +1029,7 @@ function renderDayDetail() {
 
   var html = '<div class="day-detail">' +
     '<div class="day-detail-title">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
-    '<div class="day-detail-sun">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + '</div>' +
+    '<div class="day-detail-sun" id="sunmoon-line">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + ' <span style="opacity:0.6;">(추정치)</span></div>' +
     '<p id="tide-line" class="weather-badge hidden"></p>' +
     '<p id="weather-line" class="weather-badge">날씨 확인 중…</p>' +
     '<div class="section-label">채집 기록</div>';
@@ -987,6 +1061,15 @@ function renderDayDetail() {
       saveState('haerujil.catchLog', catchLog);
       renderCalendarTab(document.getElementById('content-area'));
     });
+  });
+
+  fetchSunMoon(tabRegion.calendar, selectedDate).then(function (data) {
+    var line = document.getElementById('sunmoon-line');
+    if (!line || !data) return;
+    var sm = parseSunMoon(data);
+    if (!sm) return;
+    var moonText = sm.moonrise ? ('　🌙 월출 ' + sm.moonrise + (sm.moonset ? ' 월몰 ' + sm.moonset : '')) : '';
+    line.innerHTML = '🌅 일출 ' + sm.sunrise + '　🌇 일몰 ' + sm.sunset + moonText;
   });
 
   fetchRealTide(tabRegion.calendar, selectedDate).then(function (data) {
