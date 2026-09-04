@@ -23,11 +23,17 @@ window.addEventListener('error', function (e) {
        처리해뒀습니다 — 실제 켜보시고 콘솔 로그를 알려주시면 화면 표시까지 마무리할게요.)
 ============================================================ */
 var TIDE_API_KEY = 'IRsSSSvAIRJ8yzg/0FRHuB046Llj2SkN/PJxXUE4QFIuZgMJA8f30kbyruOLZVBJwxRIlejEIDht2efEcwCQzA==';
+var YOUTUBE_API_KEY = 'AIzaSyC4T_z8ReHdhj1GySug8DC1n8085uLYL-U';
 var TIDE_API_ENDPOINT = 'https://www.khoa.go.kr/api/oceangrid/tideObsPre/search.do';
 var OBS_CODES = {
-  wangsan: 'YOUR_OBS_CODE_YEONGJONGWANGSAN',
-  yeongheung: 'YOUR_OBS_CODE_YEONGHEUNGDO',
-  taean: 'YOUR_OBS_CODE_ANHEUNG'
+  wangsan: 'DT_0044',    // 영종대교 — 왕산에서 가장 가까운 관측소지만 정확히 같은 위치는 아니에요
+  yeongheung: 'DT_0043', // 영흥도 — 정확히 일치
+  taean: 'DT_0067',      // 안흥 — 정확히 일치 (DT_0034 "안흥(구)"는 예전 관측소라 제외)
+  ganghwa: 'DT_0032',    // 강화대교 — 근접 관측소
+  boryeong: 'DT_0025',   // 보령 — 정확히 일치
+  jebu: 'DT_0008',       // 안산 — 근접 관측소 (제부도 전용 관측소는 없음)
+  muui: 'DT_0093',       // 소무의도 — 정확히 일치
+  daebu: 'DT_0008'       // 안산 — 근접 관측소 (제부도와 동일 관측소 공유)
 };
 
 /* ============================================================
@@ -268,6 +274,11 @@ function tideInfo(day) {
   return { label: label, cls: cls, sunrise: fmt(sunriseMin), sunset: fmt(sunsetMin) };
 }
 
+function ymdFromDateStr(dateStr) {
+  var parts = dateStr.split('-');
+  return parts[0] + (parts[1].length < 2 ? '0' + parts[1] : parts[1]) + (parts[2].length < 2 ? '0' + parts[2] : parts[2]);
+}
+
 function fetchRealTide(regionKey, dateStr) {
   if (typeof fetch === 'undefined') return Promise.resolve(null);
   if (!TIDE_API_ENDPOINT || TIDE_API_ENDPOINT.indexOf('YOUR_') === 0 || TIDE_API_KEY.indexOf('YOUR_') === 0) {
@@ -276,10 +287,66 @@ function fetchRealTide(regionKey, dateStr) {
   var obsCode = OBS_CODES[regionKey];
   if (!obsCode || obsCode.indexOf('YOUR_') === 0) return Promise.resolve(null);
   var url = TIDE_API_ENDPOINT + '?ServiceKey=' + encodeURIComponent(TIDE_API_KEY) +
-    '&ObsCode=' + obsCode + '&Date=' + dateStr.replace(/-/g, '') + '&ResultType=json';
+    '&ObsCode=' + obsCode + '&Date=' + ymdFromDateStr(dateStr) + '&ResultType=json';
   return fetch(url).then(function (res) { return res.ok ? res.json() : null; })
     .then(function (data) { if (data) console.log('물때 API 응답(콘솔 확인용)', data); return data; })
     .catch(function () { return null; });
+}
+
+/* 응답 안에서 만조/간조로 보이는 극점(꼭짓점) 시각을 대략 찾아냅니다.
+   실제 응답 필드명(record_time/tide_level)을 100% 확신할 수 없어서,
+   못 찾으면 그냥 null을 돌려주고 화면은 기존 추정치를 그대로 보여줍니다. */
+function extractTideExtremes(data) {
+  try {
+    var series = data.result.data;
+    if (!series || series.length < 3) return null;
+    var points = series.map(function (p) {
+      return { time: p.record_time, level: Number(p.tide_level) };
+    }).filter(function (p) { return p.time && !isNaN(p.level); });
+    if (points.length < 3) return null;
+    var extremes = [];
+    for (var i = 1; i < points.length - 1; i++) {
+      var prev = points[i - 1].level, cur = points[i].level, next = points[i + 1].level;
+      var lastType = extremes.length ? extremes[extremes.length - 1].type : null;
+      if (cur >= prev && cur >= next && lastType !== 'high') {
+        extremes.push({ type: 'high', time: points[i].time });
+      } else if (cur <= prev && cur <= next && lastType !== 'low') {
+        extremes.push({ type: 'low', time: points[i].time });
+      }
+    }
+    return extremes.length ? extremes : null;
+  } catch (e) { return null; }
+}
+
+function formatHm(recordTime) {
+  var m = recordTime.match(/(\d{2}):(\d{2})/);
+  return m ? m[1] + ':' + m[2] : recordTime;
+}
+
+/* ============================================================
+   유튜브 관련 영상 검색 (지역별로 한 번만 검색해서 캐시)
+============================================================ */
+var ytCache = {};
+function fetchYouTubeSearch(query) {
+  if (typeof fetch === 'undefined') return Promise.resolve([]);
+  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.indexOf('YOUR_') === 0) return Promise.resolve([]);
+  if (ytCache[query]) return ytCache[query];
+  var url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=' +
+    encodeURIComponent(query) + '&key=' + YOUTUBE_API_KEY;
+  var p = fetch(url).then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      if (!data || !data.items) return [];
+      return data.items.map(function (it) {
+        return {
+          videoId: it.id.videoId,
+          title: it.snippet.title,
+          thumb: it.snippet.thumbnails.medium.url
+        };
+      });
+    })
+    .catch(function () { return []; });
+  ytCache[query] = p;
+  return p;
 }
 
 /* ============================================================
@@ -636,11 +703,14 @@ function renderRegionMap(el) {
         sorted.map(function (sp) { return speciesRow(sp, nowMonth); }).join('') + '</div>';
     }).join('') +
     '<p id="reg-detail" class="camp-card-note" style="min-height:18px;"></p>' +
-    myPointsHtml();
+    myPointsHtml() +
+    '<div class="section-label">관련 영상</div>' +
+    '<div id="yt-results"><p class="no-log">영상을 찾는 중…</p></div>';
 
   attachRegInfoHandlers(el);
   attachMyPointsHandlers(el);
   attachFocusHandlers(el, function () { return regionMap; }, 'region-map');
+  loadRelatedVideos(el, r.label);
 
   var mapEl = document.getElementById('region-map');
   if (!kakaoOk) { mapFallback(mapEl, '지도를 불러오지 못했어요. index.html의 카카오 JavaScript 키를 확인해주세요.'); return; }
@@ -653,6 +723,45 @@ function renderRegionMap(el) {
     });
     (customPoints[tabRegion.map] || []).forEach(function (p) {
       addCustomMarker(regionMap, p.lat, p.lng, p.name);
+    });
+  });
+}
+
+function loadRelatedVideos(el, regionLabel) {
+  fetchYouTubeSearch(regionLabel + ' 해루질').then(function (results) {
+    var box = el.querySelector('#yt-results');
+    if (!box) return;
+    if (!results.length) {
+      box.innerHTML = '<p class="no-log">영상을 찾지 못했어요. index.html·app.js의 유튜브 키를 확인해주세요.</p>';
+      return;
+    }
+    box.innerHTML = results.map(function (v, idx) {
+      return '<div class="video-card" data-yt-idx="' + idx + '" style="cursor:pointer;">' +
+        '<img src="' + v.thumb + '" alt="" style="width:88px;height:66px;object-fit:cover;border-radius:8px;flex-shrink:0;">' +
+        '<div class="video-info" style="flex:1;min-width:0;"><p class="video-title">' + v.title + '</p></div>' +
+        '<button data-yt-save="' + idx + '" aria-label="영상 저장" style="background:none;border:none;color:var(--tide);font-size:22px;padding:4px 8px;flex-shrink:0;">＋</button>' +
+        '</div>';
+    }).join('');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-yt-idx]'), function (card) {
+      card.addEventListener('click', function (e) {
+        if (e.target.closest('[data-yt-save]')) return;
+        var idx = parseInt(card.getAttribute('data-yt-idx'), 10);
+        var v = results[idx];
+        card.innerHTML = '<iframe width="100%" height="180" src="https://www.youtube.com/embed/' + v.videoId +
+          '?autoplay=1" title="' + v.title + '" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:8px;"></iframe>';
+        card.style.cursor = 'default';
+      });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-yt-save]'), function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var idx = parseInt(b.getAttribute('data-yt-save'), 10);
+        var v = results[idx];
+        savedVideos.push({ title: v.title, region: regionLabel, species: '-', url: 'https://www.youtube.com/watch?v=' + v.videoId });
+        saveState('haerujil.videos', savedVideos);
+        b.textContent = '✓';
+        b.disabled = true;
+      });
     });
   });
 }
@@ -819,6 +928,7 @@ function renderDayDetail() {
   var html = '<div class="day-detail">' +
     '<div class="day-detail-title">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
     '<div class="day-detail-sun">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + '</div>' +
+    '<p id="tide-line" class="weather-badge hidden"></p>' +
     '<p id="weather-line" class="weather-badge">날씨 확인 중…</p>' +
     '<div class="section-label">채집 기록</div>';
 
@@ -849,6 +959,18 @@ function renderDayDetail() {
       saveState('haerujil.catchLog', catchLog);
       renderCalendarTab(document.getElementById('content-area'));
     });
+  });
+
+  fetchRealTide(tabRegion.calendar, selectedDate).then(function (data) {
+    var line = document.getElementById('tide-line');
+    if (!line || !data) return;
+    var extremes = extractTideExtremes(data);
+    if (!extremes) return;
+    var text = extremes.map(function (e) {
+      return (e.type === 'high' ? '만조 ' : '간조 ') + formatHm(e.time);
+    }).join(' · ');
+    line.textContent = '🌊 ' + text;
+    line.classList.remove('hidden');
   });
 
   fetchWeather(tabRegion.calendar, selectedDate).then(function (w) {
