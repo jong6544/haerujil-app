@@ -382,9 +382,9 @@ function extractTideExtremes(data) {
       var prev = points[i - 1].level, cur = points[i].level, next = points[i + 1].level;
       var lastType = extremes.length ? extremes[extremes.length - 1].type : null;
       if (cur >= prev && cur >= next && lastType !== 'high') {
-        extremes.push({ type: 'high', time: points[i].time });
+        extremes.push({ type: 'high', time: points[i].time, level: cur });
       } else if (cur <= prev && cur <= next && lastType !== 'low') {
-        extremes.push({ type: 'low', time: points[i].time });
+        extremes.push({ type: 'low', time: points[i].time, level: cur });
       }
     }
     return extremes.length ? extremes : null;
@@ -694,8 +694,11 @@ function attachRegInfoHandlers(el) {
 
 function renderNationalMap(el) {
   el.innerHTML =
+    '<div id="monthly-rec" class="camp-card"><p class="no-log">이번 달 추천 계산 중…</p></div>' +
     '<div class="map-box" id="select-map"></div>' +
     '<p class="map-hint">점을 탭하면 그 지역으로 들어갑니다. 회색 점은 아직 정보가 없는 지역이에요.</p>';
+
+  loadMonthlyRecommendation(el);
 
   var mapEl = document.getElementById('select-map');
   withKakao(function () {
@@ -712,6 +715,92 @@ function renderNationalMap(el) {
       addLabeledMarker(selectMap, m.lat, m.lng, m.label, true, null);
     });
   }, mapEl);
+}
+
+/* ============================================================
+   이번 달 추천 — 실제 API로 31일×8지역을 다 훑으면 너무 오래 걸려서,
+   먼저 추정 물때로 '사리'에 해당하는 후보일만 추려낸 다음, 그 날들만
+   8개 지역 실제 데이터를 조회해 간조가 가장 낮은(=가장 많이 빠지는)
+   지역·날짜를 찾습니다. 하루 한 번만 계산하고 결과를 저장해둬요.
+============================================================ */
+function sariCandidateDays(year, month) {
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var days = [];
+  for (var d = 1; d <= daysInMonth; d++) {
+    if (tideInfo(d).cls === 'sari') days.push(d);
+  }
+  return days;
+}
+
+function computeMonthlyBest(year, month) {
+  var days = sariCandidateDays(year, month);
+  var regionKeys = Object.keys(regions);
+  var results = [];
+  var chain = Promise.resolve();
+  days.forEach(function (d) {
+    var dStr = year + '-' + (month + 1) + '-' + d;
+    regionKeys.forEach(function (rk) {
+      chain = chain.then(function () {
+        return fetchRealTide(rk, dStr).then(function (data) {
+          if (!data) return;
+          var extremes = extractTideExtremes(data);
+          if (!extremes) return;
+          var lows = extremes.filter(function (e) { return e.type === 'low'; });
+          lows.forEach(function (low) {
+            results.push({ date: dStr, day: d, region: rk, time: low.time, level: low.level });
+          });
+        });
+      });
+    });
+  });
+  return chain.then(function () { return results; });
+}
+
+var monthlyRecComputing = false;
+function loadMonthlyRecommendation(el) {
+  var monthKey = calYear + '-' + (calMonth + 1);
+  var saved = loadState('haerujil.monthlyRec', null);
+  if (saved && saved.monthKey === monthKey && saved.top && saved.top.length) {
+    renderMonthlyRecCard(el, saved.top);
+    return;
+  }
+  if (monthlyRecComputing) return;
+  monthlyRecComputing = true;
+  computeMonthlyBest(calYear, calMonth).then(function (results) {
+    monthlyRecComputing = false;
+    if (!results.length) {
+      var box = el.querySelector('#monthly-rec');
+      if (box) box.innerHTML = '<p class="no-log">이번 달 추천을 계산하지 못했어요 (실제 물때 데이터를 못 가져왔어요).</p>';
+      return;
+    }
+    results.sort(function (a, b) { return a.level - b.level; });
+    var top = results.slice(0, 3);
+    saveState('haerujil.monthlyRec', { monthKey: monthKey, top: top });
+    renderMonthlyRecCard(el, top);
+  });
+}
+
+function renderMonthlyRecCard(el, top) {
+  var box = el.querySelector('#monthly-rec');
+  if (!box) return;
+  var best = top[0];
+  var monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+  box.innerHTML =
+    '<div class="camp-card-title">⭐ 이번 달 추천 — ' + best.day + '일 ' + regions[best.region].label + '</div>' +
+    '<div class="camp-card-note">간조 ' + formatHm(best.time) + ' · 이번 달 중 물이 가장 많이 빠지는 날이에요.</div>' +
+    (top.length > 1 ? '<div class="camp-card-note" style="margin-top:6px;">그 밖의 후보: ' +
+      top.slice(1).map(function (t) { return t.day + '일 ' + regions[t.region].label; }).join(', ') + '</div>' : '') +
+    '<button class="btn" id="monthly-rec-go" style="margin-top:10px;">' + best.day + '일 ' + regions[best.region].label + ' 캘린더 보기</button>';
+  var goBtn = box.querySelector('#monthly-rec-go');
+  if (!goBtn) return;
+  goBtn.addEventListener('click', function () {
+    tabRegion.calendar = best.region;
+    calYear = parseInt(best.date.split('-')[0], 10);
+    calMonth = parseInt(best.date.split('-')[1], 10) - 1;
+    selectedDate = best.date;
+    currentTab = 'calendar';
+    renderAll();
+  });
 }
 
 function myPointsHtml() {
