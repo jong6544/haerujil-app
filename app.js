@@ -1023,7 +1023,7 @@ function renderCalendarTab(el) {
     '<span class="cal-title">' + calYear + '년 ' + monthNames[calMonth] + '</span>' +
     '<button id="next-month" aria-label="다음 달">›</button></div>';
 
-  html += '<p style="font-size:11px;color:var(--ink-soft);margin:0 0 6px;">칸 안의 위 시각은 일출, 아래 시각은 일몰이에요.</p>';
+  html += '<p style="font-size:11px;color:var(--ink-soft);margin:0 0 6px;">칸 색이 진할수록 물이 많이 빠져요. ⭐는 이 달 중 가장 좋은 날. 위=일출, 아래=일몰.</p>';
   html += '<div class="cal-grid">';
   ['일', '월', '화', '수', '목', '금', '토'].forEach(function (d) { html += '<div class="cal-dow">' + d + '</div>'; });
   for (var i = 0; i < startIdx; i++) html += '<div></div>';
@@ -1067,8 +1067,18 @@ function renderCalendarTab(el) {
   decorateCalendarTide(el);
 }
 
+function mixColor(c1, c2, ratio) {
+  function hexToRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  var a = hexToRgb(c1), b = hexToRgb(c2);
+  var r = Math.round(a[0] + (b[0] - a[0]) * ratio);
+  var g = Math.round(a[1] + (b[1] - a[1]) * ratio);
+  var bl = Math.round(a[2] + (b[2] - a[2]) * ratio);
+  return 'rgb(' + r + ',' + g + ',' + bl + ')';
+}
+
 function decorateCalendarTide(el) {
   var buttons = Array.prototype.slice.call(el.querySelectorAll('[data-date]'));
+  var collected = [];
   var chain = Promise.resolve();
   buttons.forEach(function (btn) {
     chain = chain.then(function () {
@@ -1080,7 +1090,21 @@ function decorateCalendarTide(el) {
         if (!low) return;
         var label = btn.querySelector('.d-tide');
         if (label) label.textContent = '↓' + formatHm(low.time);
+        collected.push({ btn: btn, level: low.level });
       });
+    });
+  });
+  chain.then(function () {
+    if (collected.length < 2) return;
+    var levels = collected.map(function (c) { return c.level; });
+    var min = Math.min.apply(null, levels), max = Math.max.apply(null, levels);
+    var span = max - min;
+    var bestIdx = levels.indexOf(min);
+    collected.forEach(function (c, idx) {
+      var ratio = span > 0 ? (c.level - min) / span : 0;
+      c.btn.style.background = mixColor('#B9DDD8', '#F1EFE8', ratio);
+      var label = c.btn.querySelector('.d-tide');
+      if (idx === bestIdx && label) label.textContent = '⭐' + label.textContent;
     });
   });
 }
