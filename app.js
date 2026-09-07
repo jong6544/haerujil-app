@@ -132,7 +132,7 @@ var regions = {
   muui: {
     label: '무의도', center: { lat: 37.3846, lng: 126.4093 }, level: 9,
     points: [
-      { name: '하나개해수욕장', lat: 37.3846, lng: 126.4093, species: [{ name: '동죽', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }, { name: '방게', months: [1,2,3,4,5,6,7,8,9,10,11,12] }, { name: '바지락', months: [3,4,5,6] }, { name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }] }
+      { name: '하나개해수욕장', lat: 37.3846, lng: 126.4093, species: [{ name: '동죽', months: [4,5,6,7] }, { name: '소라', months: [5,6,7,8,9] }, { name: '방게', months: [5,6,7,8] }, { name: '바지락', months: [3,4,5,6] }, { name: '백합', months: [7,8] }, { name: '주꾸미', months: [9,10,11] }] }
     ],
     campsFormal: [
       { name: '하나개해수욕장 야영지', lat: 37.3846, lng: 126.4093, note: '취사 가능, 방갈로 있음' }
@@ -165,11 +165,6 @@ var regInfo = {
   '주꾸미': '금어기 5.11~8.31'
 };
 
-var defaultVideos = [
-  { title: '영흥도 십리포 소라 해루질', region: '영흥도', species: '소라', url: '' },
-  { title: '태안 몽산포 낙지잡이', region: '태안', species: '낙지', url: '' }
-];
-
 /* ============================================================
    상태 저장 (localStorage)
 ============================================================ */
@@ -185,7 +180,12 @@ function saveState(key, value) {
 
 var catchLog = loadState('haerujil.catchLog', {});
 var savedVideos = loadState('haerujil.videos', null);
-if (!savedVideos) { savedVideos = defaultVideos.slice(); saveState('haerujil.videos', savedVideos); }
+if (!savedVideos) savedVideos = [];
+var cleanedVideos = savedVideos.filter(function (v) { return v.url; });
+if (cleanedVideos.length !== savedVideos.length) {
+  savedVideos = cleanedVideos;
+  saveState('haerujil.videos', savedVideos);
+}
 var customPoints = loadState('haerujil.customPoints', {});
 
 /* ============================================================
@@ -824,6 +824,7 @@ function attachMyPointsHandlers(el) {
   Array.prototype.forEach.call(el.querySelectorAll('[data-del-mypoint]'), function (b) {
     b.addEventListener('click', function (e) {
       e.stopPropagation();
+      if (!window.confirm('이 포인트를 삭제할까요?')) return;
       var idx = parseInt(b.getAttribute('data-del-mypoint'), 10);
       customPoints[tabRegion.map].splice(idx, 1);
       saveState('haerujil.customPoints', customPoints);
@@ -1032,7 +1033,8 @@ function renderCalendarTab(el) {
     var dStr = dateKey(d);
     var hasLog = catchLog[logKey(dStr)] && catchLog[logKey(dStr)].length > 0;
     var sel = selectedDate === dStr;
-    html += '<button class="cal-day' + (sel ? ' selected' : '') + '" data-date="' + dStr + '" ' +
+    var isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && d === today.getDate();
+    html += '<button class="cal-day' + (sel ? ' selected' : '') + (isToday ? ' today' : '') + '" data-date="' + dStr + '" ' +
       'style="background:' + (t.cls === 'sari' ? '#FAECE7' : t.cls === 'jogeum' ? '#E6F1FB' : '#F1EFE8') + '">' +
       '<span class="d-num">' + d + '</span>' +
       '<span class="d-row"><span class="d-tide">' + t.label + '</span>' + (hasLog ? '<span class="d-dot"></span>' : '') + '</span>' +
@@ -1099,12 +1101,12 @@ function decorateCalendarTide(el) {
     var levels = collected.map(function (c) { return c.level; });
     var min = Math.min.apply(null, levels), max = Math.max.apply(null, levels);
     var span = max - min;
-    var bestIdx = levels.indexOf(min);
-    collected.forEach(function (c, idx) {
+    var starThreshold = min + span * 0.2;
+    collected.forEach(function (c) {
       var ratio = span > 0 ? (c.level - min) / span : 0;
-      c.btn.style.background = mixColor('#B9DDD8', '#F1EFE8', ratio);
+      c.btn.style.background = mixColor('#5FA89E', '#F5F0E4', ratio);
       var label = c.btn.querySelector('.d-tide');
-      if (idx === bestIdx && label) label.textContent = '⭐' + label.textContent;
+      if (label && c.level <= starThreshold) label.textContent = '⭐' + label.textContent;
     });
   });
 }
@@ -1168,6 +1170,7 @@ function renderDayDetail() {
 
   Array.prototype.forEach.call(el.querySelectorAll('[data-del-log]'), function (b) {
     b.addEventListener('click', function () {
+      if (!window.confirm('이 기록을 삭제할까요?')) return;
       var idx = parseInt(b.getAttribute('data-del-log'), 10);
       catchLog[key].splice(idx, 1);
       if (catchLog[key].length === 0) delete catchLog[key];
@@ -1270,6 +1273,7 @@ function renderVideosTab(el) {
   el.innerHTML = html;
   Array.prototype.forEach.call(el.querySelectorAll('[data-del-video]'), function (b) {
     b.addEventListener('click', function () {
+      if (!window.confirm('이 영상을 삭제할까요?')) return;
       var idx = parseInt(b.getAttribute('data-del-video'), 10);
       savedVideos.splice(idx, 1);
       saveState('haerujil.videos', savedVideos);

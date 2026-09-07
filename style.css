@@ -233,6 +233,7 @@ button.badge { cursor: pointer; }
 .cal-day .d-sunrise { color: #A6712B; }
 .cal-day .d-sunset { color: #4B5B8C; }
 .cal-day.selected { border: 2px solid var(--tide); }
+.cal-day.today { box-shadow: inset 0 0 0 2px var(--rust); }
 
 .day-detail { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 16px; }
 .day-detail-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
