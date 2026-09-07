@@ -1097,16 +1097,25 @@ function decorateCalendarTide(el) {
     });
   });
   chain.then(function () {
-    if (collected.length < 2) return;
+    if (collected.length < 3) return;
     var levels = collected.map(function (c) { return c.level; });
     var min = Math.min.apply(null, levels), max = Math.max.apply(null, levels);
     var span = max - min;
-    var starThreshold = min + span * 0.2;
-    collected.forEach(function (c) {
+    var starredIdx = {};
+    for (var i = 0; i < levels.length; i++) {
+      var prevLevel = i > 0 ? levels[i - 1] : Infinity;
+      var nextLevel = i < levels.length - 1 ? levels[i + 1] : Infinity;
+      if (levels[i] <= prevLevel && levels[i] <= nextLevel) {
+        starredIdx[i] = true;
+        if (i > 0) starredIdx[i - 1] = true;
+        if (i < levels.length - 1) starredIdx[i + 1] = true;
+      }
+    }
+    collected.forEach(function (c, idx) {
       var ratio = span > 0 ? (c.level - min) / span : 0;
       c.btn.style.background = mixColor('#5FA89E', '#F5F0E4', ratio);
       var label = c.btn.querySelector('.d-tide');
-      if (label && c.level <= starThreshold) label.textContent = '⭐' + label.textContent;
+      if (label && starredIdx[idx]) label.textContent = '⭐' + label.textContent;
     });
   });
 }
@@ -1129,6 +1138,12 @@ function decorateCalendarWeather(el) {
   });
 }
 
+function mascotForCls(cls) {
+  if (cls === 'sari') return 'mascot-sari.png';
+  if (cls === 'jogeum') return 'mascot-jogeum.png';
+  return 'mascot-jungmul.png';
+}
+
 function renderDayDetail() {
   var el = document.getElementById('day-detail');
   if (!el || !selectedDate) return;
@@ -1143,7 +1158,10 @@ function renderDayDetail() {
   var logs = catchLog[key] || [];
 
   var html = '<div class="day-detail">' +
-    '<div class="day-detail-title">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
+    '<div style="display:flex;align-items:center;gap:10px;">' +
+    '<img src="' + mascotForCls(t.cls) + '" alt="" style="width:56px;height:56px;flex-shrink:0;">' +
+    '<div class="day-detail-title" style="margin:0;">' + parts[1] + '월 ' + d + '일 · ' + t.label + '</div>' +
+    '</div>' +
     '<div class="day-detail-sun" id="sunmoon-line">🌅 일출 ' + t.sunrise + '　🌇 일몰 ' + t.sunset + ' <span style="opacity:0.6;">(추정치)</span></div>' +
     '<p id="tide-line" class="weather-badge hidden"></p>' +
     '<p id="weather-line" class="weather-badge">날씨 확인 중…</p>' +
