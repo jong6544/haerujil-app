@@ -33,7 +33,11 @@ var OBS_CODES = {
   boryeong: 'DT_0025',   // 보령 — 정확히 일치
   jebu: 'DT_0008',       // 안산 — 근접 관측소 (제부도 전용 관측소는 없음)
   muui: 'DT_0093',       // 소무의도 — 정확히 일치
-  daebu: 'DT_0008'       // 안산 — 근접 관측소 (제부도와 동일 관측소 공유)
+  daebu: 'DT_0008',      // 안산 — 근접 관측소 (제부도와 동일 관측소 공유)
+  gochang: 'DT_0003',    // 영광 — 3km, 매우 근접
+  sinan: 'DT_0007',      // 목포 — 약 30km, 신안 권역 대표 관측소
+  buan: 'DT_0068',       // 위도 — 정확히 일치 (부안 본토 포인트는 근접치로 사용)
+  muan: 'DT_0066'        // 향화도 — 5km, 매우 근접
 };
 
 /* ============================================================
@@ -49,11 +53,16 @@ var regions = {
       { name: '마시안', lat: 37.4318, lng: 126.4166, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
-      { name: '왕산가족오토캠핑장', lat: 37.4485, lng: 126.3755, note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
-      { name: '을왕리 솔트캠핑장', lat: 37.4430, lng: 126.3690, note: '차박 전용 구역·카라반 구역 분리, 주차 넉넉' }
+      { name: '왕산가족오토캠핑장', lat: 37.4585, lng: 126.3661, note: '왕산해수욕장 도보 1분, 카라반 구역 있음' },
+      { name: '을왕리 솔트캠핑장', lat: 37.4573, lng: 126.3693, note: '차박 전용 구역·카라반 구역 분리, 주차 넉넉' }
     ],
     campsInformal: [
       { name: '을왕리 해변 노지 주차', lat: 37.4442, lng: 126.3705, note: '무료지만 만조 시 주차구역 침수 위험 — 물때 확인 후 높은 곳에 주차', caution: true }
+    ],
+    restaurants: [
+      { name: '해송조개구이', note: '을왕리, 조개구이 · 야외 바다뷰 테이블', address: '인천 중구 용유서로423번길 25', lat: 37.4572347, lng: 126.3681260, url: 'https://xn--lu5b27g.xn--ok0b236bp0a.com/9atds7' },
+      { name: '조개대표 을왕리직영점', note: '왕산해수욕장 인근, 모둠조개 세트', address: '인천 중구 을왕로 6', lat: 37.4458101, lng: 126.3750203, url: 'https://www.siksinhot.com/theme/magazine/7189' },
+      { name: '마시안어부집', note: '마시안해변, 조개구이 전문', address: '인천 중구 마시란로 77', lat: 37.4292372, lng: 126.4182964, url: 'https://tour.click1-tip.com/entry/%EC%98%81%EC%A2%85%EB%8F%84-%EB%A7%9B%EC%A7%91-%EB%B2%A0%EC%8A%A4%ED%8A%B810' }
     ]
   },
   yeongheung: {
@@ -65,10 +74,15 @@ var regions = {
     ],
     campsFormal: [
       { name: '십리포해수욕장 캠핑장', lat: 37.2814, lng: 126.4859, note: '정식 야영장, 유료' },
-      { name: '캠프노마드', lat: 37.2300, lng: 126.4400, note: '카라반·오토캠핑, 수영장 있음' }
+      { name: '캠프노마드', lat: 37.2635, lng: 126.4494, note: '카라반·오토캠핑, 수영장 있음' }
     ],
     campsInformal: [
       { name: '장경리해수욕장 노지', lat: 37.2722, lng: 126.4494, note: '예전엔 무료 노지캠핑 명소였으나 최근 단속 강화로 야영 금지구역 있음 — 방문 전 확인 필요', caution: true }
+    ],
+    restaurants: [
+      { name: '영흥도 바지락 해물칼국수', note: '영흥대교 인근, 바지락·해물칼국수', address: '인천 옹진군 영흥면 영흥북로 195', lat: 37.2680198, lng: 126.4949854, url: 'https://xn--lu5b27g.xn--ok0b236bp0a.com/wSbEdM' },
+      { name: '유명한집', note: '십리포해수욕장 앞, 해물칼국수', address: '인천 옹진군 영흥면 영흥북로 393', lat: 37.2809620, lng: 126.4853340, url: 'https://www.diningcode.com/profile.php?rid=XCwXrkmUIcTp' },
+      { name: '본토바지락칼국수해장국', note: '바지락칼국수 평점 높음', address: '인천 옹진군 영흥면 내리 8-10', lat: 37.2559390, lng: 126.4986554, url: 'https://www.diningcode.com/list.dc?query=%EC%98%81%ED%9D%A5%EB%8F%84+%EC%B9%BC%EA%B5%AD%EC%88%98' }
     ]
   },
   taean: {
@@ -81,11 +95,16 @@ var regions = {
     ],
     campsFormal: [
       { name: '몽산포 오토캠핑장', lat: 36.6700, lng: 126.2868, note: '전기·샤워장 완비, 1박 약 5만원' },
-      { name: '마검포 아름뜰 캠핑장', lat: 36.6250, lng: 126.2850, note: '조용한 편, 해루질 포인트 인접' }
+      { name: '마검포 아름뜰 캠핑장', lat: 36.6118, lng: 126.2903, note: '조용한 편, 해루질 포인트 인접' }
     ],
     campsInformal: [
       { name: '마검포항 노지', lat: 36.6230, lng: 126.2820, note: '무료 노지 차박, 방파제 안쪽 잔잔한 해변에서 낚시·해루질 병행 가능', caution: false },
-      { name: '솔향기길 해안 차박지', lat: 36.7200, lng: 126.2200, note: '전기·수도 없음, 조용한 감성 차박지', caution: false }
+      { name: '솔향기길 해안 차박지', lat: 36.9672, lng: 126.3042, note: '전기·수도 없음, 조용한 감성 차박지', caution: false }
+    ],
+    restaurants: [
+      { name: '안흥식당', note: '태안읍, 장어조림·샤브샤브', address: '충남 태안군 태안읍 정주내2길 15', lat: 36.7467184, lng: 126.3059350, url: 'https://atlantak.com/%ED%95%9C%EA%B5%AD%EB%A7%9B%EC%A7%91-%EC%84%9C%ED%95%B4%EC%95%88-%ED%95%B4%EC%82%B0%EB%AC%BC-%EB%A7%9B%EC%A7%91-%EB%B2%A0%EC%8A%A4%ED%8A%B8-5/' },
+      { name: '태안바지락해장국', note: '바지락 듬뿍, 시래기밥 리필 가능', address: '충남 태안군 태안읍 서해로 1952-5', lat: 36.7531881, lng: 126.3223740, url: 'https://www.diningcode.com/profile.php?rid=7voOBOeSkRiV' },
+      { name: '몽산포먹거리수산', note: '몽산포, 갑오징어 등 활어회', address: '충남 태안군 몽대로 495-31', lat: 36.6728077, lng: 126.2734430, url: 'https://atlantak.com/%ED%95%9C%EA%B5%AD%EB%A7%9B%EC%A7%91-%EC%84%9C%ED%95%B4%EC%95%88-%ED%95%B4%EC%82%B0%EB%AC%BC-%EB%A7%9B%EC%A7%91-%EB%B2%A0%EC%8A%A4%ED%8A%B8-5/' }
     ]
   },
   ganghwa: {
@@ -94,14 +113,20 @@ var regions = {
       { name: '동막해변', lat: 37.5926, lng: 126.4582, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '칠게', months: [5,6,7,8,9] }, { name: '쌀무늬고둥', months: [4,5,6,7,8,9] }] },
       { name: '동검도', lat: 37.5880, lng: 126.5150, species: [{ name: '낙지', months: [9,10,11] }] },
       { name: '외포항', lat: 37.7055, lng: 126.3816, species: [{ name: '꽃게', months: [4,5,9,10] }, { name: '소라', months: [5,6,7,8,9] }] },
-      { name: '초지대교 인근', lat: 37.6280, lng: 126.5000, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
-      { name: '민머루해수욕장(석모도)', lat: 37.6250, lng: 126.2950, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
+      { name: '초지대교 인근', lat: 37.6324, lng: 126.5404, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
+      { name: '민머루해수욕장(석모도)', lat: 37.6514, lng: 126.3335, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
     ],
     campsFormal: [
       { name: '동막해변 야영장', lat: 37.5926, lng: 126.4582, note: '데크·노지 야영구역, 샤워장 있음(여름 성수기 유료 운영)' }
     ],
     campsInformal: [
       { name: '외포항 주변 노지', lat: 37.7055, lng: 126.3816, note: '석모도 여객선터미널 인근, 방문 전 주차·야영 가능 여부 확인 필요', caution: true }
+    ],
+    restaurants: [
+      { name: '만복정', note: '강화풍물시장 2층, 밴댕이회·무침', address: '인천 강화군 강화읍 중앙로 17-9', lat: 37.7414806, lng: 126.4927278, url: 'https://busan7.com/entry/%EC%A0%84%ED%98%84%EB%AC%B4%EA%B3%84%ED%9A%8D2-%EA%B0%95%ED%99%94%EB%8F%84-%ED%92%8D%EB%AC%BC%EC%8B%9C%EC%9E%A5-%EB%82%B4-%EB%A7%9B%EC%A7%91-%EB%B0%B4%EB%8C%95%EC%9D%B4-%ED%95%9C%EC%83%81%F0%9F%90%9F' },
+      { name: '일억조젓국갈비', note: '젓국갈비, 반찬 푸짐', address: '인천 강화군 강화읍 동문안길21번길 17', lat: 37.7476823, lng: 126.4851367, url: 'https://www.diningcode.com/profile.php?rid=fFex0fKgLBxg' },
+      { name: '금문도', note: '짜장면·탕수육(강화 순무 활용)', address: '인천 강화군 길상면 강화동로 187', lat: 37.6560265, lng: 126.4928351, url: 'https://www.diningcode.com/profile.php?rid=UqC1x3iUsoZ8' },
+      { name: '용흥궁식당', note: '젓국갈비 평점 높음', address: '인천 강화군 강화읍 동문안길21번길 22', lat: 37.7478655, lng: 126.4848819, url: 'https://www.diningcode.com/list.dc?query=%EA%B0%95%ED%99%94%EB%8F%84++%EC%88%9C%EB%AC%B4%EA%B9%80%EC%B9%98' }
     ]
   },
   boryeong: {
@@ -109,13 +134,17 @@ var regions = {
     points: [
       { name: '무창포해수욕장', lat: 36.2445, lng: 126.5366, species: [{ name: '굴', months: [11,12,1,2] }, { name: '바지락', months: [3,4,5,6] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '골뱅이', months: [3,4,5] }, { name: '홍합', months: [3,4,5,6] }] },
       { name: '독산해수욕장', lat: 36.2225, lng: 126.5309, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] },
-      { name: '대천해수욕장', lat: 36.3180, lng: 126.5130, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
+      { name: '대천해수욕장', lat: 36.3056, lng: 126.5160, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [
       { name: '독산해수욕장 야영장·오토캠핑장', lat: 36.2225, lng: 126.5309, note: '소나무 방풍림, 정식 시설' }
     ],
     campsInformal: [
       { name: '무창포 인근 노지', lat: 36.2445, lng: 126.5366, note: '신비의 바닷길(석대도) 개방 시간에 맞춰 방문 — 물때 확인 필수', caution: true }
+    ],
+    restaurants: [
+      { name: '수정식당', note: '대천, 밴댕이·갈치 조림', address: '충남 보령시', lat: 36.3449047, lng: 126.5984825, url: 'https://brunch.co.kr/@savvyoon/1579' },
+      { name: '유정식당', note: '서천, 꽃게무침·간장게장', address: '충남 서천군', lat: 36.0106397, lng: 126.6970492, url: 'https://atlantak.com/%ED%95%9C%EA%B5%AD%EB%A7%9B%EC%A7%91-%EC%84%9C%ED%95%B4%EC%95%88-%ED%95%B4%EC%82%B0%EB%AC%BC-%EB%A7%9B%EC%A7%91-%EB%B2%A0%EC%8A%A4%ED%8A%B8-5/' }
     ]
   },
   jebu: {
@@ -127,6 +156,11 @@ var regions = {
     campsFormal: [],
     campsInformal: [
       { name: '제부도 진입 전 주차장 인근', lat: 37.2000, lng: 126.6180, note: '바닷길 통행시간(물때)에 따라 입·출도 가능 여부가 달라짐 — 반드시 사전 확인', caution: true }
+    ],
+    restaurants: [
+      { name: '매바위횟집', note: '제부도, 조개칼국수·해물파전', address: '경기 화성시 서신면 해안길 230-1', lat: 37.1617848, lng: 126.6185324, url: 'https://www.diningcode.com/profile.php?rid=hhJIhrtbWo8z' },
+      { name: '소라횟집', note: '제부리, 조개구이·조개찜 패키지', address: '경기 화성시 서신면 제부리 190-22', lat: 37.1608002, lng: 126.6187658, url: 'https://korean.visitkorea.or.kr/detail/rem_detail.do?cotid=b38c76a0-5789-4c3e-9248-411cd09d1a48' },
+      { name: '서울회집', note: '제부리, 활어회', address: '경기 화성시 서신면 제부리 20-11', lat: 37.1691378, lng: 126.6286325, url: 'https://korean.visitkorea.or.kr/detail/rem_detail.do?cotid=b38c76a0-5789-4c3e-9248-411cd09d1a48' }
     ]
   },
   muui: {
@@ -137,17 +171,87 @@ var regions = {
     campsFormal: [
       { name: '하나개해수욕장 야영지', lat: 37.3846, lng: 126.4093, note: '취사 가능, 방갈로 있음' }
     ],
-    campsInformal: []
+    campsInformal: [],
+    restaurants: [
+      { name: '무의도 하나개 조개구이', note: '하나개해수욕장, 조개찜·칼국수', address: '인천 중구 하나개로 144-19', lat: 37.3830388, lng: 126.4104581, url: 'https://www.diningcode.com/profile.php?rid=uSu7DmlOK5V5' },
+      { name: '어부네', note: '하나개해수욕장, 바지락·해물칼국수', address: '인천 중구 무의동 산189', lat: 37.3847137, lng: 126.4107800, url: 'https://www.diningcode.com/profile.php?rid=9HaqVphjaF3W' },
+      { name: '황금손해물칼국수 무의점', note: '백합칼국수', address: '인천 중구 대무의로 309-17', lat: 37.3888848, lng: 126.4265426, url: 'https://www.diningcode.com/profile.php?rid=SK1aGClRwgfi' }
+    ]
   },
   daebu: {
     label: '대부도', center: { lat: 37.2450, lng: 126.5900 }, level: 9,
     points: [
       { name: '방아머리해수욕장', lat: 37.2892, lng: 126.5765, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '게', months: [5,6,7,8,9] }, { name: '고둥', months: [4,5,6,7,8,9] }, { name: '꽃게', months: [4,5,9,10] }, { name: '망둥어', months: [6,7,8,9,10] }] },
-      { name: '탄도항', lat: 37.2210, lng: 126.5590, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
+      { name: '탄도항', lat: 37.1924, lng: 126.6450, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }] }
     ],
     campsFormal: [],
     campsInformal: [
-      { name: '방아머리 인근 바다향기테마파크 노지캠핑지', lat: 37.2600, lng: 126.5850, note: '무료, 여러 대가 함께 캠핑 가능(떼캠 명소), 화장실 있음', caution: false }
+      { name: '방아머리 인근 바다향기테마파크 노지캠핑지', lat: 37.2832, lng: 126.5781, note: '무료, 여러 대가 함께 캠핑 가능(떼캠 명소), 화장실 있음', caution: false }
+    ],
+    restaurants: [
+      { name: '문성5호', note: '대부도 유일 민어탕 전문점', address: '경기 안산시 단원구 대부황금로 1209', lat: 37.2659844, lng: 126.5770349, url: 'https://busan7.com/entry/%EC%A0%84%ED%98%84%EB%AC%B4%EA%B3%84%ED%9A%8D2-%EA%B0%95%ED%99%94%EB%8F%84-%ED%92%8D%EB%AC%BC%EC%8B%9C%EC%9E%A5-%EB%82%B4-%EB%A7%9B%EC%A7%91-%EB%B0%B4%EB%8C%95%EC%9D%B4-%ED%95%9C%EC%83%81%F0%9F%90%9F' },
+      { name: '대갓집해물왕창칼국수', note: '방아머리 먹거리타운, 해물칼국수', address: '경기 안산시 단원구 대부황금로 1463', lat: 37.2860122, lng: 126.5724375, url: 'https://triple.guide/attractions/7ecf9e61-9193-4fcf-b842-fe645ad08deb' },
+      { name: '사또조개구이', note: '방아머리, 활어회+조개구이 코스', address: '경기 안산시 단원구 대부황금로 1479', lat: 37.2867896, lng: 126.5736141, url: 'https://www.siksinhot.com/theme/magazine/11421' }
+    ]
+  },
+  gochang: {
+    label: '고창', center: { lat: 35.4500, lng: 126.4400 }, level: 9,
+    points: [
+      { name: '구시포해변', lat: 35.4453, lng: 126.4349, species: [{ name: '백합', months: [4,5,6,7,8,9,10] }, { name: '바지락', months: [4,5,6,7,8,9,10] }, { name: '동죽', months: [4,5,6,7] }] },
+      { name: '상하해변', lat: 35.4471, lng: 126.4517, species: [{ name: '바지락', months: [4,5,6,7,8,9,10] }, { name: '맛조개', months: [4,5,6,7,8,9] }, { name: '동죽', months: [4,5,6,7] }, { name: '낙지', months: [9,10,11] }] }
+    ],
+    campsFormal: [
+      { name: '구시포 노을캠핑장', lat: 35.4391, lng: 126.4338, note: '구시포해변 바로 앞, 오토캠핑존·카라반 가능, 전기·샤워장 완비' }
+    ],
+    campsInformal: [],
+    restaurants: [
+      { name: '장어장터', note: '구시포해변, 풍천장어·칼국수', address: '전북 고창군 상하면 자룡리 (구시포해변길 12-1)', lat: 35.4465875, lng: 126.4364389, url: 'https://www.diningcode.com/profile.php?rid=B6rMHgnD5OEZ' },
+      { name: '구시포하우스', note: '구시포, 쭈꾸미·백합칼국수, 오션뷰', address: '전북 고창군 상하면 자룡리 520-19', lat: 35.4469642, lng: 126.4367410, url: 'https://www.diningcode.com/profile.php?rid=oQDgck8GmJ1H' }
+    ]
+  },
+  sinan: {
+    label: '신안(증도)', center: { lat: 34.9712, lng: 126.1367 }, level: 10,
+    points: [
+      { name: '우전해변', lat: 34.9712, lng: 126.1367, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
+    ],
+    campsFormal: [],
+    campsInformal: [
+      { name: '우전해변 인근 노지', lat: 34.9712, lng: 126.1367, note: '짱뚱어해변 방향 도보 이동, 성수기 외 샤워장 미운영 — 신안군이 조례로 지정한 공식 갯벌축제장이라 해루질 자체는 문제없음. 개인 소비량만 채취하고 특정 구역 어촌계 표시가 있으면 그 구역만 피할 것', caution: false }
+    ],
+    restaurants: [
+      { name: '이학식당', note: '증도, 짱뚱어탕·낙지비빔밥', address: '전남 신안군 증도면 증도중앙길 39', lat: 35.0010181, lng: 126.1396314, url: 'https://www.diningcode.com/profile.php?rid=IsFGr0va3xiZ' },
+      { name: '전주식당', note: '지도읍, 짱뚱어탕(증도에서 차로 이동 필요)', address: '전남 신안군 지도읍 읍내리 815-2', lat: 35.0564161, lng: 126.2036575, url: 'https://www.diningcode.com/profile.php?rid=vSl5wMpEFnU0' }
+    ]
+  },
+  buan: {
+    label: '부안', center: { lat: 35.6600, lng: 126.4200 }, level: 9,
+    points: [
+      { name: '변산해수욕장', lat: 35.6813, lng: 126.5316, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '동죽', months: [4,5,6,7] }] },
+      { name: '고사포해변', lat: 35.6627, lng: 126.5087, species: [{ name: '개조개', months: [4,5,6,7] }, { name: '맛조개', months: [4,5,6,7,8,9] }, { name: '동죽', months: [4,5,6,7] }, { name: '바지락', months: [3,4,5,6] }] },
+      { name: '위도', lat: 35.5977, lng: 126.2827, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '낙지', months: [9,10,11] }] }
+    ],
+    campsFormal: [
+      { name: '변산오토캠핑장', lat: 35.6821, lng: 126.5338, note: '변산해수욕장 도보 200m, 카라반 5대·개인카라반 사이트 29면' }
+    ],
+    campsInformal: [],
+    restaurants: [
+      { name: '변산명인바지락죽', note: '변산해변, 인삼바지락죽·바지락회비빔밥', address: '전북 부안군 변산면 변산해변로 794', lat: 35.6645597, lng: 126.5134049, url: 'https://v.daum.net/v/zovkV7g2ZT' },
+      { name: '김인경 바지락죽', note: '변산, 바지락죽·조개파전(원조바지락죽으로도 불림)', address: '전북 부안군 변산면 대항리 90-12', lat: 35.6916239, lng: 126.5648265, url: 'https://www.clien.net/service/board/kin/15199037' },
+      { name: '계화회관', note: '계화면, 백합죽·백합정식(변산에서 차로 이동)', address: '전북 부안군 행안면 변산로 95', lat: 35.7290676, lng: 126.7106686, url: 'https://www.clien.net/service/board/kin/15199037' }
+    ]
+  },
+  muan: {
+    label: '무안', center: { lat: 35.1300, lng: 126.3400 }, level: 10,
+    points: [
+      { name: '현경면 갯벌', lat: 35.1037, lng: 126.3330, species: [{ name: '낙지', months: [9,10,11] }, { name: '바지락', months: [3,4,5,6] }] },
+      { name: '송계어촌체험마을', lat: 35.1533, lng: 126.3400, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '소라', months: [5,6,7,8,9] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
+    ],
+    campsFormal: [],
+    campsInformal: [
+      { name: '송계어촌체험마을 인근 노지', lat: 35.1533, lng: 126.3400, note: '무료 노지 차박 명소로 알려져 있으나 성수기엔 매우 붐빔, 화장실 관리 상태 사전 확인 권장', caution: true }
+    ],
+    restaurants: [
+      { name: '윤희네뻘낙지', note: '무안읍 낙지골목, 낙지탕탕이·낙지볶음', address: '전남 무안군 무안읍 성남1길 167', lat: 34.9873465, lng: 126.4767110, url: 'https://daddy331.kdo1.kr/entry/%EB%AC%B4%EC%95%88-%EB%A7%9B%EC%A7%91-%EB%B2%A0%EC%8A%A4%ED%8A%B810-%EC%A7%80%EA%B8%88-%EB%9C%A8%EB%8A%94-%EA%B3%B3' }
     ]
   }
 };
@@ -306,7 +410,8 @@ var ASTRO_API_KEY = TIDE_API_KEY;
 var ASTRO_API_ENDPOINT = 'https://apis.data.go.kr/B090041/openapi/service/RiseSetInfoService/getAreaRiseSetInfo';
 var REGION_LOCATION_NAMES = {
   wangsan: '인천', yeongheung: '인천', taean: '태안', ganghwa: '강화',
-  boryeong: '보령', jebu: '화성', muui: '인천', daebu: '안산'
+  boryeong: '보령', jebu: '화성', muui: '인천', daebu: '안산',
+  gochang: '고창', sinan: '신안', buan: '부안', muan: '무안'
 };
 var astroCache = {};
 function fetchSunMoon(regionKey, dateStr) {
@@ -959,8 +1064,41 @@ function renderCampTab(el) {
     return '<div class="camp-card"' + geo + '><div class="camp-card-title">🚐 ' + c.name + warn + '</div>' +
       '<div class="camp-card-note">' + c.note + '</div></div>';
   }).join('');
+  if (r.restaurants && r.restaurants.length) {
+    html += '<div class="section-label">주변 맛집</div>';
+    html += r.restaurants.map(function (f, idx) {
+      var naviUrl = 'https://map.kakao.com/link/to/' + encodeURIComponent(f.name) + ',' + f.lat + ',' + f.lng;
+      return '<div class="camp-card" data-lat="' + f.lat + '" data-lng="' + f.lng + '" style="cursor:pointer;">' +
+        '<div class="camp-card-title">🍽️ ' + f.name + '</div>' +
+        '<div class="camp-card-note">' + f.note + '</div>' +
+        '<div class="camp-card-note" style="margin-top:4px;">' + f.address + '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">' +
+        '<button data-copy-addr="' + idx + '" class="pill-btn" style="cursor:pointer;">주소 복사</button>' +
+        '<a data-navi href="' + naviUrl + '" target="_blank" rel="noopener" class="pill-btn" style="text-decoration:none;">길찾기</a>' +
+        '<a href="' + f.url + '" target="_blank" rel="noopener" class="pill-btn" style="text-decoration:none;">리뷰 보기</a>' +
+        '</div></div>';
+    }).join('');
+  }
   el.innerHTML = html;
   attachFocusHandlers(el, function () { return campMap; }, 'camp-map');
+  Array.prototype.forEach.call(el.querySelectorAll('[data-copy-addr]'), function (b) {
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var idx = parseInt(b.getAttribute('data-copy-addr'), 10);
+      var addr = r.restaurants[idx].address;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(addr).then(function () {
+          b.textContent = '복사됨';
+          setTimeout(function () { b.textContent = '주소 복사'; }, 1500);
+        }).catch(function () { window.prompt('아래 주소를 직접 복사해주세요', addr); });
+      } else {
+        window.prompt('아래 주소를 직접 복사해주세요', addr);
+      }
+    });
+  });
+  Array.prototype.forEach.call(el.querySelectorAll('[data-navi]'), function (a) {
+    a.addEventListener('click', function (e) { e.stopPropagation(); });
+  });
 
   var mapEl = document.getElementById('camp-map');
   withKakao(function () {
@@ -971,6 +1109,9 @@ function renderCampTab(el) {
     });
     r.campsInformal.forEach(function (c) {
       if (c.lat != null) addLabeledMarker(campMap, c.lat, c.lng, c.name, true, null);
+    });
+    (r.restaurants || []).forEach(function (f) {
+      addLabeledMarker(campMap, f.lat, f.lng, f.name, true, null);
     });
   }, mapEl);
 }
