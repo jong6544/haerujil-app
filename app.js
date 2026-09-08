@@ -1176,7 +1176,7 @@ function renderCalendarTab(el) {
     var sel = selectedDate === dStr;
     var isToday = calYear === today.getFullYear() && calMonth === today.getMonth() && d === today.getDate();
     html += '<button class="cal-day' + (sel ? ' selected' : '') + (isToday ? ' today' : '') + '" data-date="' + dStr + '" ' +
-      'style="background:' + (t.cls === 'sari' ? '#FAECE7' : t.cls === 'jogeum' ? '#E6F1FB' : '#F1EFE8') + '">' +
+      'style="background:#F1EFE8">' +
       '<span class="d-num">' + d + '</span>' +
       '<span class="d-row"><span class="d-tide">' + t.label + '</span>' + (hasLog ? '<span class="d-dot"></span>' : '') + '</span>' +
       '<span class="d-sun d-sunrise">' + t.sunrise + '</span>' +
