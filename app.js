@@ -26,14 +26,14 @@ var TIDE_API_KEY = 'IRsSSSvAIRJ8yzg/0FRHuB046Llj2SkN/PJxXUE4QFIuZgMJA8f30kbyruOL
 var YOUTUBE_API_KEY = 'AIzaSyC4T_z8ReHdhj1GySug8DC1n8085uLYL-U';
 var TIDE_API_ENDPOINT = 'https://apis.data.go.kr/1192136/surveyTideLevel/GetSurveyTideLevelApiService';
 var OBS_CODES = {
-  wangsan: 'DT_0044',    // 영종대교 — 왕산에서 가장 가까운 관측소지만 정확히 같은 위치는 아니에요
+  wangsan: 'DT_0093',    // 소무의도 — 재계산 결과 영종대교보다 더 가까움(10.6km)
   yeongheung: 'DT_0043', // 영흥도 — 정확히 일치
   taean: 'DT_0067',      // 안흥 — 정확히 일치 (DT_0034 "안흥(구)"는 예전 관측소라 제외)
   ganghwa: 'DT_0032',    // 강화대교 — 근접 관측소
   boryeong: 'DT_0025',   // 보령 — 정확히 일치
   jebu: 'DT_0008',       // 안산 — 근접 관측소 (제부도 전용 관측소는 없음)
   muui: 'DT_0093',       // 소무의도 — 정확히 일치
-  daebu: 'DT_0008',      // 안산 — 근접 관측소 (제부도와 동일 관측소 공유)
+  daebu: 'DT_0052',      // 인천송도 — 재계산 결과 안산보다 더 가까움(5.5km)
   gochang: 'DT_0003',    // 영광 — 3km, 매우 근접
   sinan: 'DT_0007',      // 목포 — 약 30km, 신안 권역 대표 관측소
   buan: 'DT_0068',       // 위도 — 정확히 일치 (부안 본토 포인트는 근접치로 사용)
@@ -57,7 +57,7 @@ var regions = {
       { name: '을왕리 솔트캠핑장', lat: 37.4573, lng: 126.3693, note: '차박 전용 구역·카라반 구역 분리, 주차 넉넉' }
     ],
     campsInformal: [
-      { name: '을왕리 해변 노지 주차', lat: 37.4442, lng: 126.3705, note: '무료지만 만조 시 주차구역 침수 위험 — 물때 확인 후 높은 곳에 주차', caution: true }
+      { name: '을왕리 해변 노지 주차', lat: 37.4448, lng: 126.3758, note: '무료지만 만조 시 주차구역 침수 위험 — 물때 확인 후 높은 곳에 주차', caution: true }
     ],
     restaurants: [
       { name: '해송조개구이', note: '을왕리, 조개구이 · 야외 바다뷰 테이블', address: '인천 중구 용유서로423번길 25', lat: 37.4572347, lng: 126.3681260, url: 'https://xn--lu5b27g.xn--ok0b236bp0a.com/9atds7' },
@@ -155,7 +155,7 @@ var regions = {
     ],
     campsFormal: [],
     campsInformal: [
-      { name: '제부도 진입 전 주차장 인근', lat: 37.2000, lng: 126.6180, note: '바닷길 통행시간(물때)에 따라 입·출도 가능 여부가 달라짐 — 반드시 사전 확인', caution: true }
+      { name: '제부도 진입 전 주차장 인근', lat: 37.1741, lng: 126.6295, note: '바닷길 통행시간(물때)에 따라 입·출도 가능 여부가 달라짐 — 반드시 사전 확인', caution: true }
     ],
     restaurants: [
       { name: '매바위횟집', note: '제부도, 조개칼국수·해물파전', address: '경기 화성시 서신면 해안길 230-1', lat: 37.1617848, lng: 126.6185324, url: 'https://www.diningcode.com/profile.php?rid=hhJIhrtbWo8z' },
@@ -214,7 +214,9 @@ var regions = {
     points: [
       { name: '우전해변', lat: 34.9712, lng: 126.1367, species: [{ name: '바지락', months: [3,4,5,6] }, { name: '동죽', months: [4,5,6,7] }, { name: '고둥', months: [4,5,6,7,8,9] }] }
     ],
-    campsFormal: [],
+    campsFormal: [
+      { name: '신안 설레미캠핑장', lat: 34.9607, lng: 126.1355, note: '우전해변 바로 옆, 오토캠핑·카라반·해변캠핑 구역 분리, 전기·샤워장 완비' }
+    ],
     campsInformal: [
       { name: '우전해변 인근 노지', lat: 34.9712, lng: 126.1367, note: '짱뚱어해변 방향 도보 이동, 성수기 외 샤워장 미운영 — 신안군이 조례로 지정한 공식 갯벌축제장이라 해루질 자체는 문제없음. 개인 소비량만 채취하고 특정 구역 어촌계 표시가 있으면 그 구역만 피할 것', caution: false }
     ],
@@ -291,12 +293,34 @@ if (cleanedVideos.length !== savedVideos.length) {
   saveState('haerujil.videos', savedVideos);
 }
 var customPoints = loadState('haerujil.customPoints', {});
+var customCamps = loadState('haerujil.customCamps', {});
 
 /* ============================================================
    앱 상태
 ============================================================ */
 var tabRegion = { map: null, camp: null, calendar: null };
 var currentTab = 'map';
+
+/* ============================================================
+   뒤로가기 버튼이 앱을 꺼버리지 않고, 이전 탭·지역으로 돌아가도록
+   브라우저 히스토리에 탭·지역 이동만 기록합니다(폼 입력 등 자잘한
+   변경은 기록하지 않아요).
+============================================================ */
+var isPoppingState = false;
+function pushNavState() {
+  if (isPoppingState) return;
+  history.pushState({ tab: currentTab, tabRegion: { map: tabRegion.map, camp: tabRegion.camp, calendar: tabRegion.calendar } }, '', '');
+}
+window.addEventListener('popstate', function (e) {
+  if (!e.state) return;
+  isPoppingState = true;
+  currentTab = e.state.tab;
+  tabRegion.map = e.state.tabRegion.map;
+  tabRegion.camp = e.state.tabRegion.camp;
+  tabRegion.calendar = e.state.tabRegion.calendar;
+  renderAll();
+  isPoppingState = false;
+});
 var today = new Date();
 var calYear = today.getFullYear();
 var calMonth = today.getMonth();
@@ -409,9 +433,9 @@ function ymdFromDateStr(dateStr) {
 var ASTRO_API_KEY = TIDE_API_KEY;
 var ASTRO_API_ENDPOINT = 'https://apis.data.go.kr/B090041/openapi/service/RiseSetInfoService/getAreaRiseSetInfo';
 var REGION_LOCATION_NAMES = {
-  wangsan: '인천', yeongheung: '인천', taean: '태안', ganghwa: '강화',
+  wangsan: '인천', yeongheung: '인천', taean: '태안', ganghwa: '강화도',
   boryeong: '보령', jebu: '화성', muui: '인천', daebu: '안산',
-  gochang: '고창', sinan: '신안', buan: '부안', muan: '무안'
+  gochang: '영광', sinan: '목포', buan: '부안', muan: '무안'
 };
 var astroCache = {};
 function fetchSunMoon(regionKey, dateStr) {
@@ -721,6 +745,7 @@ function renderRegionBar() {
   document.getElementById('change-region').addEventListener('click', function () {
     tabRegion[currentTab] = null;
     renderAll();
+    pushNavState();
   });
 }
 
@@ -753,6 +778,7 @@ function renderRegionPrompt(el) {
     b.addEventListener('click', function () {
       tabRegion[currentTab] = b.getAttribute('data-pick');
       renderAll();
+      pushNavState();
     });
   });
 }
@@ -814,6 +840,7 @@ function renderNationalMap(el) {
       addLabeledMarker(selectMap, r.center.lat, r.center.lng, r.label, false, function () {
         tabRegion.map = key;
         renderAll();
+        pushNavState();
       });
     });
     inactiveMarkers.forEach(function (m) {
@@ -905,6 +932,7 @@ function renderMonthlyRecCard(el, top) {
     selectedDate = best.date;
     currentTab = 'calendar';
     renderAll();
+    pushNavState();
   });
 }
 
@@ -1048,6 +1076,57 @@ function loadRelatedVideos(el, regionLabel) {
 /* ============================================================
    캠핑지도 탭
 ============================================================ */
+function myCampsHtml() {
+  var mine = customCamps[tabRegion.camp] || [];
+  var html = '<div class="section-label">내가 저장한 위치</div>';
+  if (mine.length === 0) html += '<p class="no-log">아직 저장한 위치가 없어요.</p>';
+  else html += mine.map(function (p, idx) {
+    return '<div class="camp-card" data-lat="' + p.lat + '" data-lng="' + p.lng + '" style="display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;">' +
+      '<div><div class="camp-card-title">📌 ' + p.name + '</div>' +
+      (p.memo ? '<div class="camp-card-note">' + p.memo + '</div>' : '') + '</div>' +
+      '<button data-del-mycamp="' + idx + '" aria-label="위치 삭제" style="background:none;border:none;color:var(--ink-soft);font-size:16px;padding:4px 6px;flex-shrink:0;">✕</button></div>';
+  }).join('');
+  html += '<input class="field" id="mycamp-name" type="text" placeholder="이름 (예: 여기 주차하기 좋음)">' +
+    '<input class="field" id="mycamp-memo" type="text" placeholder="메모 (선택)">' +
+    '<p class="error-text hidden" id="mycamp-error">이름을 입력하고, 위치 접근을 허용해주세요.</p>' +
+    '<button class="btn" id="mycamp-save">📍 현재 위치 저장</button>';
+  return html;
+}
+
+function attachMyCampsHandlers(el) {
+  Array.prototype.forEach.call(el.querySelectorAll('[data-del-mycamp]'), function (b) {
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!window.confirm('이 위치를 삭제할까요?')) return;
+      var idx = parseInt(b.getAttribute('data-del-mycamp'), 10);
+      customCamps[tabRegion.camp].splice(idx, 1);
+      saveState('haerujil.customCamps', customCamps);
+      renderCampTab(el);
+    });
+  });
+  var saveBtn = document.getElementById('mycamp-save');
+  if (!saveBtn) return;
+  saveBtn.addEventListener('click', function () {
+    var name = document.getElementById('mycamp-name').value.trim();
+    var memo = document.getElementById('mycamp-memo').value.trim();
+    var err = document.getElementById('mycamp-error');
+    if (!name) { err.textContent = '이름을 입력해주세요.'; err.classList.remove('hidden'); return; }
+    if (!navigator.geolocation) { err.textContent = '이 브라우저에서는 위치 확인을 지원하지 않아요.'; err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    saveBtn.textContent = '위치 확인 중…';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      if (!customCamps[tabRegion.camp]) customCamps[tabRegion.camp] = [];
+      customCamps[tabRegion.camp].push({ name: name, memo: memo, lat: pos.coords.latitude, lng: pos.coords.longitude });
+      saveState('haerujil.customCamps', customCamps);
+      renderCampTab(el);
+    }, function () {
+      err.textContent = '위치를 가져오지 못했어요. 위치 권한을 허용했는지 확인해주세요.';
+      err.classList.remove('hidden');
+      saveBtn.textContent = '📍 현재 위치 저장';
+    });
+  });
+}
+
 function renderCampTab(el) {
   var r = regions[tabRegion.camp];
   var html = '<div class="point-map" id="camp-map"></div>' +
@@ -1079,8 +1158,10 @@ function renderCampTab(el) {
         '</div></div>';
     }).join('');
   }
+  html += myCampsHtml();
   el.innerHTML = html;
   attachFocusHandlers(el, function () { return campMap; }, 'camp-map');
+  attachMyCampsHandlers(el);
   Array.prototype.forEach.call(el.querySelectorAll('[data-copy-addr]'), function (b) {
     b.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -1112,6 +1193,9 @@ function renderCampTab(el) {
     });
     (r.restaurants || []).forEach(function (f) {
       addLabeledMarker(campMap, f.lat, f.lng, f.name, true, null);
+    });
+    (customCamps[tabRegion.camp] || []).forEach(function (p) {
+      addCustomMarker(campMap, p.lat, p.lng, p.name);
     });
   }, mapEl);
 }
@@ -1473,6 +1557,7 @@ function renderTabbar() {
       currentTab = b.getAttribute('data-tab');
       selectedDate = null;
       renderAll();
+      pushNavState();
     });
   });
 }
@@ -1487,6 +1572,7 @@ function initApp() {
     '<div id="region-bar"></div>' +
     '<div class="screen-area" id="content-area"></div>' +
     '<div class="tabbar" id="tabbar"></div>';
+  history.replaceState({ tab: currentTab, tabRegion: { map: tabRegion.map, camp: tabRegion.camp, calendar: tabRegion.calendar } }, '', '');
   renderAll();
 }
 
