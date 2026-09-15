@@ -669,7 +669,23 @@ function fetchWeather(regionKey, dateStr) {
 /* ============================================================
    전체 다시 그리기
 ============================================================ */
+var TABS = [
+  { id: 'map', label: '해루질 지도', icon: '📍' },
+  { id: 'camp', label: '캠핑지도', icon: '⛺' },
+  { id: 'calendar', label: '캘린더', icon: '📅' },
+  { id: 'videos', label: '저장한 영상', icon: '▶' },
+  { id: 'more', label: '더보기', icon: '⋯' }
+];
+
+function renderHeaderTitle() {
+  var el = document.getElementById('app-title');
+  if (!el) return;
+  var tab = TABS.filter(function (t) { return t.id === currentTab; })[0];
+  el.textContent = tab ? tab.label : '해루질';
+}
+
 function renderAll() {
+  renderHeaderTitle();
   renderRegionBar();
   renderContent();
   renderTabbar();
@@ -1540,13 +1556,7 @@ function renderVideosTab(el) {
    하단 탭 바 — 항상 떠 있음
 ============================================================ */
 function renderTabbar() {
-  var tabs = [
-    { id: 'map', label: '해루질 지도', icon: '📍' },
-    { id: 'camp', label: '캠핑지도', icon: '⛺' },
-    { id: 'calendar', label: '캘린더', icon: '📅' },
-    { id: 'videos', label: '저장한 영상', icon: '▶' },
-    { id: 'more', label: '더보기', icon: '⋯' }
-  ];
+  var tabs = TABS;
   var el = document.getElementById('tabbar');
   el.innerHTML = tabs.map(function (t) {
     return '<button class="tab-btn' + (t.id === currentTab ? ' active' : '') + '" data-tab="' + t.id + '">' +
@@ -1568,7 +1578,7 @@ function renderTabbar() {
 function initApp() {
   var app = document.getElementById('app');
   app.innerHTML =
-    '<div class="app-header"><div class="app-title">해루질</div></div>' +
+    '<div class="app-header"><div class="app-title" id="app-title">해루질</div></div>' +
     '<div id="region-bar"></div>' +
     '<div class="screen-area" id="content-area"></div>' +
     '<div class="tabbar" id="tabbar"></div>';
